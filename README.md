@@ -1,10 +1,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blueviolet.svg)](https://opensource.org/licenses/MIT)
 [![Release Version](https://img.shields.io/github/v/tag/mi5hmash/SteamDeckBTRFS?label=version)](https://github.com/mi5hmash/SteamDeckBTRFS/releases/latest)
-![Latest Supported SteamOS](https://img.shields.io/badge/Latest%20Suppored%20SteamOS-3.2%20--%20build%2020220526.1-success)
+![Latest Supported SteamOS](https://img.shields.io/badge/Latest%20Suppored%20SteamOS-3.2%20--%20build%2020220718.1-success)
 [![Visual Studio Code](https://img.shields.io/badge/--007ACC?logo=visual%20studio%20code&logoColor=ffffff)](https://code.visualstudio.com/)
 
 # :interrobang: SteamDeckBTRFS - What is it?
-<img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/cover.png" alt="cover" width="450"/>
+<img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/cover.png" alt="cover" width="460"/>
 
 It's a shell script for lazy people like me who want to use [BTRFS](https://btrfs.wiki.kernel.org/index.php/Main_Page) formatted microSD cards on their decks, but don't want to type many commands into a command line. Worry no more as I got you covered.
 
@@ -21,13 +21,18 @@ Then right-click on the ***'SteamDeckBTRFS.sh'*** and select "Run in Konsole".
 <img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/run.png" alt="run" width="415"/>
 
 **Do not attempt to execute it by clicking twice on it, because this will run the script in a hidden window.**
+
+# :alarm_clock: Updating the tool and getting the latest patch
+Starting from version 1.1.0, the script checks on each launch if a newer release is available. If so, it asks the user for permission to download and update the tool. 
+Next, the script will check if there is a patch for the current build of the system in the ***"./patches/"*** directory. If the script does not find a suitable candidate, it tries to look for it in this repository and download it on your device.
+
 # :scroll: Functions and their numbers
 ## Main functions
 Although nearly all of the names are self-explanatory, I'm leaving a short note below each one of them.
 ### 0. Exit
 Safely terminates the script.
 ### 1. Patch scripts
-Tries to patch the scripts on Steam Deck if a compatible patch exists in the ***"./patches"*** directory. Before doing so you would want to run **"3. Backup scripts"** option just in case you need it later.
+Tries to patch the scripts on Steam Deck if a compatible patch exists in the ***"./patches/"*** directory. Before doing so you would want to run **"3. Backup scripts"** option just in case you need it later.
 ### 2. Unpatch scripts
 Tries to reverse patch the scripts that were previously patched by this tool.
 ### 3. Backup scripts
@@ -38,11 +43,11 @@ Restores a backup, chosen from a ***"./backup/"*** directory.
 ### 97. Toggle steamos-readonly status
 Allows you to change the steamos-readonly status to the opposite of the current one.
 ### 98. Prepare a workbench
-Unpacks a previously made backup to ***"./original"*** directory and copies script files to ***"./patched"*** directory. Having all that set, you can try to make a change to the scripts inside the ***"./patched"*** directory.
+Unpacks a previously made backup to ***"./original/"*** directory and copies script files to ***"./patched/"*** directory. Having all that set, you can try to make a change to the scripts inside the ***"./patched/"*** directory.
 ### 99. Create a patch file
-After you change everything you want, you should delete all the extra files (which are all except the ***'format-sdcard.sh'*** and ***'sdcard-mount.sh'***) and run that option to compare files from both directories to finally create your own patch. The file will be saved in the ***"./patches"*** directory. **NOTE: You have to run it from a SteamOS on a Steam Deck as it will take the current SteamOS build as a patch version. Using other Linux distros won't work.**
+After you change everything you want, you should delete all the extra files (which are all except the ***'format-sdcard.sh'*** and ***'sdcard-mount.sh'***) and run that option to compare files from both directories to finally create your own patch. The file will be saved in the ***"./patches/"*** directory. **NOTE: You have to run it from a SteamOS on a Steam Deck as it will take the current SteamOS build as a patch version. Using other Linux distros won't work.**
 ## Are we done?
-After completion of each function, you will be asked if that's all for now. You can choose '**No**' to come back to the list of functions.
+After completion of each function, you will be asked if that's all for now. You can choose '**No**' to come back to the list of all functions.
 # :mega: Additional notes
 A majority of options require root privileges. If you've already set your custom password, the script will ask you to type it. It will be stored as an encrypted variable for the time of running the script. Otherwise, the script will use the default password which is **"GabeNewell#1"**. Unless you're using your own password, it will be removed at the end of each option execution.
 # :fire: Issues

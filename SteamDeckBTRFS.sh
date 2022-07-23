@@ -10,8 +10,23 @@ echo_I() { echo -e "\e[1;34m[INFO] $1$clr0"; }
 
 ### FUNCTIONS
 
+## Waits n seconds before proceeding any further
+# $1-Number of seconds to wait
+# USAGE: _simpleTimer "5"
+_simpleTimer() {
+local _t="$1"
+echo -n "Script will continue in: $_t"
+for (( i="$_t-1"; i>=0; i-- ))
+do
+    sleep 1s
+    echo -n ", $i"
+done
+echo "."
+}
+
 ## Repeat input string n times
 # $1-Input string; $2-Times
+# USAGE: "$(say "a" 10)"
 say() { for _ in $(seq 1 "${2:-1}"); do echo -n "$1"; done; }
 
 ## Get password variable
@@ -54,9 +69,9 @@ fi
 _sudoStatusText() {
 local _t; _t="$(_sudoStatus)"
 case "$_t" in
-    0) echo "\e[1;31m""unavailable$clr0";;
-    1) echo "\e[1;93m""non-active$clr0";;
-    2) echo "\e[1;96m""active$clr0";;
+	0) echo "\e[1;31m""unavailable$clr0";;
+	1) echo "\e[1;93m""non-active$clr0";;
+	2) echo "\e[1;96m""active$clr0";;
 esac
 }
 
@@ -494,6 +509,93 @@ cd -- "$OLDPWD" || return
 }
 
 
+### UPDATES
+
+## Gets info about releases from GitHub's REST API
+# $1-API path after 'https://api.github.com/'
+# USAGE: _GIT_getInfo "repos/mi5hmash/SteamDeckBTRFS/releases/latest"
+_GIT_getInfo() { curl -sL "https://api.github.com/$1"; }
+
+## Gets version value from json formatted input
+# $1-Json formatted input
+# USAGE: _GIT_getLatestVersion "$(cat "./test.json")"
+_GIT_getLatestVersion() { echo "$1" | jq -r ".tag_name"; }
+
+## Gets download link from json formatted input
+# $1-Json formatted input; $2-Filename
+# USAGE: _GIT_getDownloadLink "$(cat "./test.json")"
+_GIT_getDownloadLink() { echo "$1" | jq -r ".assets[] | select(.name | contains(\"$2\")) | .browser_download_url"; }
+
+## Compares the global version with a local version provided by user
+# $1-Global version number; $2-Local version number
+_isUpdateAvailable() {
+local _g=$1
+local _l=$2
+local _t; _t=$(echo -e "$_g\n$_l" | sort -Vr | head -n 1)
+[ "$_l" != "$_g" ] && [ "$_t" = "$_g" ]
+}
+
+## Downloads latest release from GitHub
+# $1-Download link
+_GIT_update() {
+_f() { echo -e "\e[1;31mFailure\e[0m"; }
+_s() { echo -e "\e[1;96mSuccess\e[0m"; }
+local _ret;
+local _dl; _dl=$1
+local _fileName; _fileName="update_$(uuidgen | tr "[:lower:]" "[:upper:]")$e_zip"
+echo_I "Trying to download the update:"
+wget -q --show-progress -O "$_fileName" -- "$1" &> /dev/null
+_ret="$?"; [ "$_ret" = 0 ] && _s || _f
+echo_I "Trying to update:"
+unzip -oq "./$_fileName"
+_ret="$?"; [ "$_ret" = 0 ] && _s || _f
+rm -f "./$_fileName"
+_simpleTimer "5" # wait 5 seconds so user can read the output
+}
+
+## Looks for the latest release tag on GitHub and if there is a newer version
+## available then it asks user for permission to download and update the script
+_GIT_checkVersion() {
+local _i; _i="$(_GIT_getInfo "repos/mi5hmash/SteamDeckBTRFS/releases/latest")"
+local _v; _v="$(_GIT_getLatestVersion "$_i")"
+if ! _isUpdateAvailable "$_v" "$TOOL_VERSION"; then return; fi
+_printUpdateMenu
+if ! [ "$REPLY" = 1 ]; then return; fi
+local _f; _f=$tool_name\_$_v$e_zip
+local _d; _d="$(_GIT_getDownloadLink "$_i" "$_f")"
+local _s; _s="./$tool_name.sh"
+_GIT_update "$_d"
+# Restore the execute permission
+chmod u+x "$_s"
+# Disable Update check on the next run
+UPDATE_CHECK="0"
+_writeSettingsJson
+# Restart script
+exec "$_s"
+}
+
+## Checks if the patch for a current system build is present in the 'patches' folder
+## If not true then it tries to download a proper patch
+_GIT_downloadPatch() {
+local _ret;
+local _r; _r=1 # It looks like you have the patch for your current build '$s_BUILD' in the '$PatchPath' directory
+local _fileName="$s_BUILD$e_patch"
+local _filePath="$PatchPath$_fileName"
+mkdir -p -- "$PatchPath"
+if ! [ -e "$_filePath" ]; then
+	wget -q --show-progress -O "$_filePath" -- "https://github.com/mi5hmash/SteamDeckBTRFS/raw/main/patches/$_fileName" &> /dev/null
+	_ret="$?"
+	if [ "$_ret" = 0 ]; then
+		_r=2 # The patch for your current build has been downloaded
+	else
+		rm -f "$_filePath"
+		_r=3 # As for now there is no patch available for your current build
+	fi
+fi
+echo "$_r"
+}
+
+
 ### MENUS
 
 _sayHello() {
@@ -527,7 +629,7 @@ echo -e "$clr1"" ___ _                  ___         _   ""\e[5;95m"" ___ _____ _
 echo -e "$clr1""/ __| |_ ___ __ _ _ __ |   \ ___ __| |_ ""\e[5;95m""| _ )_   _| _ \| __/ __|""$clr0"
 echo -e "$clr1""\__ \  _/ -_) _\` | '  \| |) / -_) _| / /""\e[5;95m""| _ \ | | |   /| _|\__ \\""\\$clr0"
 echo -e "$clr1""|___/\__\___\__,_|_|_|_|___/\___\__|_\_\\""\\\e[5;95m""|___/ |_| |_|_\|_| |___/""$clr0"
-echo -e "$clr1""$(say " " 39)patcher by Mi5hmasH ""$clr2""v$TOOL_VERSION""$clr0"
+echo -e "$clr1""$(say " " 38)patcher by Mi5hmasH ""$clr2""$TOOL_VERSION""$clr0"
 echo -e "$clr1$(say "*-" 32)$clr0"
 echo -e "$clr1$(say "=" 64)$clr0"
 echo -e "$clr2""  PATCH, BACKUP or RESTORE SteamDeck's sdcard related scripts   ""$clr0"
@@ -540,6 +642,7 @@ echo -e "$clr2""My repo: $git_link             ""$clr0"
 echo -e "$clr1$(say "=" 64)$clr0"
 _printOsInfo
 echo -e "$clr1$(say "=" 64)$clr0"
+_printPatchAvailabilityStatus
 }
 
 ## Main Menu
@@ -547,7 +650,7 @@ _printMainMenu() {
 PS3=$ps3_1 # Set the Select Prompt (PS3)
 REPLY=0 # default reply
 local _opts=("Patch scripts" "Unpatch scripts" "Backup scripts" "Restore backupped scripts")
-[ "$FIRST_TIME" = 1 ] &&
+[ "$FIRST_LAP" = 1 ] &&
 echo -e "$(_sayHello)\nHow may I help you?\n$(say "-" 19)" ||
 echo -e "What else can I do for you? (^-^)\n$(say "-" 33)"
 echo "0) Exit"
@@ -582,13 +685,29 @@ done
 _printAreWeDoneMenu() {
 PS3=$ps3_1
 echo "Are we done?"
-echo "------------"
+echo "$(say "-" 12)"
 REPLY=1 # default reply
 COLUMNS=1
 select _ in "Yes" "No"; do
 	case $REPLY in
 		1|Y|y|Yes|yes) _exit;;
-		2|N|n|No|no) FIRST_TIME=0; break;;
+		2|N|n|No|no) FIRST_LAP=0; break;;
+		*) echo_W "Sorry, but you have to choose between 'Yes' and 'No' options.";;
+	esac
+done
+}
+
+## Download and Update Menu
+_printUpdateMenu() {
+PS3=$ps3_1
+echo "There is a newer version available, would you like to download and unpack it?"
+echo "$(say "-" 77)"
+REPLY=1 # default reply
+COLUMNS=1
+select _ in "Yes" "No"; do
+	case $REPLY in
+		1|Y|y|Yes|yes) REPLY=1; break;;
+		2|N|n|No|no) REPLY=2; break;;
 		*) echo_W "Sorry, but you have to choose between 'Yes' and 'No' options.";;
 	esac
 done
@@ -631,6 +750,19 @@ _printOsInfo() {
 echo -ne "$clr1$s_NAME $s_VERSION\t\e[1;93m$s_BUILD\t$clr2$s_VARIANT\t$(_sudoStatusText)\t$(_steamOsReadOnlyStatusBTRFS 1)$clr0" | column -s '	' -t -N "OS:,Build:,Variant:,Sudo Status:,ReadOnly:"
 }
 
+_printPatchAvailabilityStatus() {
+local _s
+local _i=$s_PATCH_AVAILABILITY
+if [ "$_i" = 0 ]; then return; fi
+case "$_i" in
+	1) _s="\e[1;96mPRESENT$clr0";;
+	2) _s="\e[1;96mDOWNLOADED$clr0";;
+	3) _s="\e[1;96mNOT AVAILABLE$clr0";;
+esac
+echo -e "PATCH FILE: $_s"
+echo -e "$clr1$(say "=" 64)$clr0"
+}
+
 _exit() {
 PS3="#?" # Restore the default Select Prompt (PS3)
 echo -e "\nExiting...\n$(_sayGoodbye)"
@@ -643,8 +775,8 @@ echo_I "You can safely close this window now."; exit
 ## MAIN VARIABLES
 SESSION_GUID="$(uuidgen | tr "[:lower:]" "[:upper:]")"; readonly SESSION_GUID
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd); readonly ROOT_DIR
-declare -r TOOL_VERSION="1.00"
-declare -ri PACKAGE_VERSION=${TOOL_VERSION//./}
+declare -r TOOL_VERSION="v1.1.0"
+declare -ri PACKAGE_VERSION="100"
 declare -r unknown="unknown"
 declare -r ps3_1="Enter the number of your choice: "
 declare -r tool_name="SteamDeckBTRFS"
@@ -661,8 +793,11 @@ s_VARIANT=$(_getSettingsValue "VARIANT_ID"); readonly s_VARIANT
 s_BUILD=$(_getSettingsValue "BUILD_ID"); readonly s_BUILD
 s_ROOTFS_TYPE=$(findmnt -fn --output FSTYPE /); readonly s_ROOTFS_TYPE
 
+## PATCH INFO
+s_PATCH_AVAILABILITY=0;
+
 ## FLAGS
-FIRST_TIME=1
+FIRST_LAP=1
 DEF_RO_STATUS=$(_steamOsReadOnlyStatusBTRFS)
 DEF_USR_HAS_PASSWD=$(_userHasPassword "$userName" && echo 1 || echo 0); readonly DEF_USR_HAS_PASSWD
 
@@ -683,10 +818,42 @@ declare -r n_checksums_o="checksums_o"
 declare -r n_checksums_p="checksums_p"
 declare -r n_patch="btrfsPatch"
 declare -r e_patch=".patch"
+declare -r e_zip=".zip"
 declare -r e_unpatch=".unpatch"
 
 
+### SETTINGS
+
+declare -r settingsJson="settings.json" ## Settings fileName
+
+## Reads settings from a 'settingsJson' config file
+_readSettingsJson() {
+_jq() { jq -r ".$1" "$settingsJson"; }
+# Settings to read
+UPDATE_CHECK="$(_jq "UPDATE_CHECK")"
+}
+
+## Writes settings to a 'settingsJson' config file
+_writeSettingsJson() { jq -n ".UPDATE_CHECK=\"$UPDATE_CHECK\"" > "$settingsJson"; }
+
+## Loads Settings from an existing 'settingsJson' config file or creates a new one
+loadSettingsJson() {
+# Settings and their default values
+UPDATE_CHECK="1"
+# Create new 'settingsJson' config file or load settings from an existing one
+local _s="$settingsJson"
+if ! [ -e "./$_s" ]; then
+	touch "$_s"
+	_writeSettingsJson
+else
+	_readSettingsJson
+fi
+}
+
+
 ### MAIN (ENTRY POINT)
+
+## Check sudo
 if [ "$(_sudoStatus)" = 0 ]; then
 	clear
 	_printTitle
@@ -694,6 +861,19 @@ if [ "$(_sudoStatus)" = 0 ]; then
 	echo_E "Sorry, but it seems that a current user hasn't got root rights. Please, contact the adminstrator of your device.\n"
 	exit
 fi
+loadSettingsJson ## Load Settings
+## Update
+cd -- "$ROOT_DIR" || return
+clear
+_printTitle
+if [ "$UPDATE_CHECK" = "1" ]; then
+	_GIT_checkVersion
+else
+	UPDATE_CHECK="1"
+	_writeSettingsJson
+fi
+s_PATCH_AVAILABILITY="$(_GIT_downloadPatch)"
+## Main Menu Loop
 while true
 do
 	cd -- "$ROOT_DIR" || return
