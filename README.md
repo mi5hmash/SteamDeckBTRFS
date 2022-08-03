@@ -45,7 +45,7 @@ Allows you to change the steamos-readonly status to the opposite of the current 
 ### 98. Prepare a workbench
 Unpacks a previously made backup to ***"./workbench/original/"*** directory and copies script files to ***"./workbench/patched/"*** directory. Having all that set, you can try to make a change to the scripts inside the ***"./workbench/patched/"*** directory.
 ### 99. Create a patch file
-After you change everything you want, you can run that option to compare files from both directories and get your own patch in result. The file will be saved in the ***"./patches/"*** directory. **NOTE: You have to run it from a SteamOS on a Steam Deck as it will take the current SteamOS build as a patch version. Using other Linux distros won't work.**
+After you change everything you want, you can run this option to compare files from both directories and get your own patch in result. The file will be saved in the ***"./patches/"*** directory. **NOTE: You have to run it from a SteamOS on a Steam Deck as it will take the current SteamOS build as a patch version. Using other Linux distros won't work.**
 ## Are we done?
 After completion of each function, you will be asked if that's all for now. You can choose '**No**' to come back to the list of all functions.
 # :mega: Additional notes
