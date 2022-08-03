@@ -1,6 +1,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blueviolet.svg)](https://opensource.org/licenses/MIT)
 [![Release Version](https://img.shields.io/github/v/tag/mi5hmash/SteamDeckBTRFS?label=version)](https://github.com/mi5hmash/SteamDeckBTRFS/releases/latest)
-![Latest Supported SteamOS](https://img.shields.io/badge/Latest%20Suppored%20SteamOS-3.2%20--%20build%2020220718.1-success)
+![Latest Supported SteamOS](https://img.shields.io/badge/Latest%20Suppored%20SteamOS-3.3%20--%20build%2020220802.1-success)
 [![Visual Studio Code](https://img.shields.io/badge/--007ACC?logo=visual%20studio%20code&logoColor=ffffff)](https://code.visualstudio.com/)
 
 # :interrobang: SteamDeckBTRFS - What is it?
@@ -43,9 +43,9 @@ Restores a backup, chosen from a ***"./backup/"*** directory.
 ### 97. Toggle steamos-readonly status
 Allows you to change the steamos-readonly status to the opposite of the current one.
 ### 98. Prepare a workbench
-Unpacks a previously made backup to ***"./original/"*** directory and copies script files to ***"./patched/"*** directory. Having all that set, you can try to make a change to the scripts inside the ***"./patched/"*** directory.
+Unpacks a previously made backup to ***"./workbench/original/"*** directory and copies script files to ***"./workbench/patched/"*** directory. Having all that set, you can try to make a change to the scripts inside the ***"./workbench/patched/"*** directory.
 ### 99. Create a patch file
-After you change everything you want, you should delete all the extra files (which are all except the ***'format-sdcard.sh'*** and ***'sdcard-mount.sh'***) and run that option to compare files from both directories to finally create your own patch. The file will be saved in the ***"./patches/"*** directory. **NOTE: You have to run it from a SteamOS on a Steam Deck as it will take the current SteamOS build as a patch version. Using other Linux distros won't work.**
+After you change everything you want, you can run that option to compare files from both directories and get your own patch in result. The file will be saved in the ***"./patches/"*** directory. **NOTE: You have to run it from a SteamOS on a Steam Deck as it will take the current SteamOS build as a patch version. Using other Linux distros won't work.**
 ## Are we done?
 After completion of each function, you will be asked if that's all for now. You can choose '**No**' to come back to the list of all functions.
 # :mega: Additional notes

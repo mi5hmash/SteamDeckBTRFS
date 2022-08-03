@@ -18,8 +18,8 @@ local _t="$1"
 echo -n "Script will continue in: $_t"
 for (( i="$_t-1"; i>=0; i-- ))
 do
-    sleep 1s
-    echo -n ", $i"
+	sleep 1s
+	echo -n ", $i"
 done
 echo "."
 }
@@ -281,7 +281,7 @@ case "$_err" in
 	*) echo_E "$_errb.";;
 esac
 # Remove directory
-rm -vrf -- "$TempPath" &> /dev/null
+rm -rf -- "$TempPath"
 }
 
 ## Restore scripts from backup
@@ -313,12 +313,12 @@ case "$_err" in
 	4:3) echo_E "$_errb on copying files.";;
 	4:5) echo_E "$_errb on restoring files permissions.";;
 	4:4|4:6) echo_E "$_errb on testing.";;
-	4:7) echo_E "{$_err} Backup has been made with a newer version ($_tempDir$n_version) of $tool_name tool. Please download the newest version from: $git_link/releases";;
+	4:7) echo_E "{$_err} Backup has been made with a newer version of $TOOL_NAME tool. Please download the newest version from: $git_link/releases";;
 	4:8) echo_E "$_errb on unpacking.";;
 	*) echo_E "$_errb.";;
 esac
 # Remove directory
-rm -vrf -- "$TempPath" &> /dev/null
+rm -rf -- "$TempPath"
 }
 
 ## Backup a script from SteamDeck
@@ -365,7 +365,7 @@ case "$_err" in
 	*) echo_E "$_errb.";;
 esac
 # Remove directory
-rm -vrf -- "$TempPath" &> /dev/null
+rm -rf -- "$TempPath"
 }
 
 unpatchScripts() {
@@ -393,28 +393,39 @@ case "$_err" in
 	*) echo_E "$_errb.";;
 esac
 # Remove directory
-rm -vrf -- "$TempPath" &> /dev/null
+rm -rf -- "$TempPath"
 }
 
 ## Prepares Workspace to manually patch the files
 # $1-Backup File Name
-_prepareWorkspace() {
+_prepareWorkbench() {
 local _backup="$1"
-mkdir -p -- "$OriginalFilesPath" "$PatchedFilesPath"
-echo_I "Unpacking the backup archieve..." # Unpack
-(tar -xzf "$BackupPath$_backup" -C "$OriginalFilesPath" || exit 8
-echo_I "Verifying checksums..." # Verify sha256 checksums
-_dirSHA256sumRW "$OriginalFilesPath" "$OriginalFilesPath$n_checksums_o" 1 || exit 4
+local _wrkbDir="$WorkbenchPath"
+local _orgfPath="$_wrkbDir${OriginalFilesPath#*./}"
+local _intelfPath="$_wrkbDir${OriginalFilesIntelPath#*./}"
+local _patchedfPath="$_wrkbDir${PatchedFilesPath#*./}"
+_prepareWorkbench_cleanup() { rm -rf -- "$_wrkbDir"; }
+# Recreate workspace folders
+_prepareWorkbench_cleanup
+mkdir -p -- "$_intelfPath" "$_orgfPath" "$_patchedfPath"
+echo_I "Unpacking the backup archieve..." # unpack
+(tar -xzf "$BackupPath$_backup" -C "$_intelfPath" || exit 8
+echo_I "Verifying checksums..." # verify sha256 checksums
+_dirSHA256sumRW "$_intelfPath" "$_intelfPath$n_checksums_o" 1 || exit 4
 # Copy scripts
 echo_I "Copying files..."
 for f in "${ScriptFiles[@]}"
 do
-	cp -f "$OriginalFilesPath$f" "$PatchedFilesPath$f" &> /dev/null || exit 3
+	cp -f "$_intelfPath$f" "$_orgfPath$f" &> /dev/null || exit 3
+	cp -f "$_orgfPath$f" "$_patchedfPath$f" &> /dev/null || exit 3
+	rm -f "$_intelfPath$f" || exit 3
 done )
-local _err="98:$?"
+local _er="$?"
+local _err="98:$_er"
 local _errb="{$_err} Creating a workspace has failed"
+[ "$_er" = 0 ] || _prepareWorkbench_cleanup # cleanup on failure
 case "$_err" in
-	98:0) echo_S "Scripts from a backup file '$_backup' has been unpacked to '$OriginalFilesPath' and '$PatchedFilesPath'.";;
+	98:0) echo_S "Scripts from a backup file '$_backup' has been unpacked to '$_orgfPath' and '$_patchedfPath' along with intel in '$_intelfPath'.";;
 	98:3) echo_E "$_errb on copying files";;
 	98:4) echo_E "$_errb on veryfying";;
 	98:8) echo_E "$_errb on unpacking";;
@@ -425,19 +436,22 @@ esac
 createPatchFile() {
 local _tempDir="$TempPath$s_BUILD/"
 local _patch="$s_BUILD$e_patch"
+local _wrkbDir="$WorkbenchPath"
+local _orgfPath="$_wrkbDir${OriginalFilesPath#*./}"
+local _patchedfPath="$_wrkbDir${PatchedFilesPath#*./}"
 mkdir -p -- "$_tempDir" "$PatchPath"
 # Create a real patch and unpatch files, compressed with gzip compression level 9
 # More info about creating patches: https://www.howtogeek.com/415442/how-to-apply-a-patch-to-a-file-and-create-patches-in-linux/
 echo_I "Comparing files..."
-(diff -ruN "$OriginalFilesPath" "$PatchedFilesPath" | gzip -9 > "$_tempDir$n_patch$e_patch"
+(diff -ruN "$_orgfPath" "$_patchedfPath" | gzip -9 > "$_tempDir$n_patch$e_patch"
 [ "${PIPESTATUS[0]}" -le 1 ] || exit 3
 echo_S "Patch file created."
-diff -ruN "$PatchedFilesPath" "$OriginalFilesPath" | gzip -9 > "$_tempDir$n_patch$e_unpatch"
+diff -ruN "$_patchedfPath" "$_orgfPath" | gzip -9 > "$_tempDir$n_patch$e_unpatch"
 [ "${PIPESTATUS[0]}" -le 1 ] || exit 3
 echo_S "Reverse patch file created."
 # Create file with sha256 checksums
-_dirSHA256sumRW "$OriginalFilesPath" "$_tempDir$n_checksums_o" || exit 4
-_dirSHA256sumRW "$PatchedFilesPath" "$_tempDir$n_checksums_p" || exit 5
+_dirSHA256sumRW "$_orgfPath" "$_tempDir$n_checksums_o" || exit 4
+_dirSHA256sumRW "$_patchedfPath" "$_tempDir$n_checksums_p" || exit 5
 echo_S "Files with checksums created."
 # Create 'build' file
 echo_I "Collecting info about SteamOS build and tool version..."
@@ -456,7 +470,7 @@ case "$_err" in
 	*) echo_E "$_errb.";;
 esac
 # Remove directory
-rm -vrf -- "$TempPath" &> /dev/null
+rm -rf -- "$TempPath"
 }
 
 ## Calculate SHA256 checksums of files in directory
@@ -478,7 +492,7 @@ cd -- "$OLDPWD" || return
 # $1-Root Directory of a File Collection; $2-Output File Path; if $3 not null then delete old file;
 _backupChmod() {
 # Delete previous file if exist
-[ -n "$3" ] && rm -vf -- "$2" &> /dev/null
+[ -n "$3" ] && rm -f -- "$2"
 for f in "${ScriptFiles[@]}"
 do
 	echo -e "$f\t$(stat -c %a "$1$f")" >> "$2"
@@ -538,32 +552,31 @@ local _t; _t=$(echo -e "$_g\n$_l" | sort -Vr | head -n 1)
 ## Downloads latest release from GitHub
 # $1-Download link
 _GIT_update() {
-_f() { echo -e "\e[1;31mFailure\e[0m"; }
-_s() { echo -e "\e[1;96mSuccess\e[0m"; }
+_eFail() { echo -e "\e[1;31mFailure\e[0m"; }
+_eSucc() { echo -e "\e[1;96mSuccess\e[0m"; }
 local _ret;
 local _dl; _dl=$1
 local _fileName; _fileName="update_$(uuidgen | tr "[:lower:]" "[:upper:]")$e_zip"
 echo_I "Trying to download the update:"
-wget -q --show-progress -O "$_fileName" -- "$1" &> /dev/null
-_ret="$?"; [ "$_ret" = 0 ] && _s || _f
+wget -q --show-progress -O "$_fileName" -- "$1" &> /dev/null # download update file
+_ret="$?"; [ "$_ret" = 0 ] && _eSucc || _eFail
 echo_I "Trying to update:"
-unzip -oq "./$_fileName"
-_ret="$?"; [ "$_ret" = 0 ] && _s || _f
-rm -f "./$_fileName"
+unzip -oq "./$_fileName" # unpack update file
+_ret="$?"; [ "$_ret" = 0 ] && _eSucc || _eFail
+rm -f "./$_fileName" # delete update file
 _simpleTimer "5" # wait 5 seconds so user can read the output
 }
 
-## Looks for the latest release tag on GitHub and if there is a newer version
-## available then it asks user for permission to download and update the script
+## Looks for the latest release tag on GitHub and if there is a newer version available then it asks user for permission to download and update the script
 _GIT_checkVersion() {
 local _i; _i="$(_GIT_getInfo "repos/mi5hmash/SteamDeckBTRFS/releases/latest")"
 local _v; _v="$(_GIT_getLatestVersion "$_i")"
 if ! _isUpdateAvailable "$_v" "$TOOL_VERSION"; then return; fi
 _printUpdateMenu
 if ! [ "$REPLY" = 1 ]; then return; fi
-local _f; _f=$tool_name\_$_v$e_zip
+local _f; _f=$TOOL_NAME\_$_v$e_zip
 local _d; _d="$(_GIT_getDownloadLink "$_i" "$_f")"
-local _s; _s="./$tool_name.sh"
+local _s; _s="./$TOOL_NAME.sh"
 _GIT_update "$_d"
 # Restore the execute permission
 chmod u+x "$_s"
@@ -742,8 +755,8 @@ _pritnSelectBackupFileMenu "restore:\n$(say - 61)"
 
 chooseBackup() {
 _pritnSelectBackupFileMenu "use:\n$(say - 57)"
-# Call _prepareWorkspace function
-[ "$REPLY" = 0 ] || _prepareWorkspace "$REPLY"
+# Call _prepareWorkbench function
+[ "$REPLY" = 0 ] || _prepareWorkbench "$REPLY"
 }
 
 _printOsInfo() {
@@ -757,7 +770,7 @@ if [ "$_i" = 0 ]; then return; fi
 case "$_i" in
 	1) _s="\e[1;96mPRESENT$clr0";;
 	2) _s="\e[1;96mDOWNLOADED$clr0";;
-	3) _s="\e[1;96mNOT AVAILABLE$clr0";;
+	3) _s="\e[1;31mNOT AVAILABLE$clr0";;
 esac
 echo -e "PATCH FILE: $_s"
 echo -e "$clr1$(say "=" 64)$clr0"
@@ -775,11 +788,11 @@ echo_I "You can safely close this window now."; exit
 ## MAIN VARIABLES
 SESSION_GUID="$(uuidgen | tr "[:lower:]" "[:upper:]")"; readonly SESSION_GUID
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd); readonly ROOT_DIR
-declare -r TOOL_VERSION="v1.1.0"
+declare -r TOOL_NAME="SteamDeckBTRFS"
+declare -r TOOL_VERSION="v1.1.1"
 declare -ri PACKAGE_VERSION="100"
 declare -r unknown="unknown"
 declare -r ps3_1="Enter the number of your choice: "
-declare -r tool_name="SteamDeckBTRFS"
 declare -r git_link="https://github.com/mi5hmash/SteamDeckBTRFS"
 
 ## Username and temporary password
@@ -802,11 +815,13 @@ DEF_RO_STATUS=$(_steamOsReadOnlyStatusBTRFS)
 DEF_USR_HAS_PASSWD=$(_userHasPassword "$userName" && echo 1 || echo 0); readonly DEF_USR_HAS_PASSWD
 
 ## PATHS
+declare -r OriginalFilesIntelPath="./org_intel/"
 declare -r OriginalFilesPath="./original/"
 declare -r PatchedFilesPath="./patched/"
 declare -r BackupPath="./backup/"
 declare -r PatchPath="./patches/"
 declare -r TempPath="./.temp/"
+declare -r WorkbenchPath="./workbench/"
 declare -r SteamDeckFilesPath="/usr/lib/hwsupport/"
 
 ## FILENAMES & EXTENSIONS
