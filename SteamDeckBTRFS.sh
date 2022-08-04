@@ -10,6 +10,12 @@ echo_I() { echo -e "\e[1;34m[INFO] $1$clr0"; }
 
 ### FUNCTIONS
 
+## Tells if the device is connected to the Internet
+_testConnection() {
+local _t; _t="$(ping -q -c2 "8.8.8.8" | grep -E -o -m 1 "([[:digit:]]{1,3}\%)")"
+[ "$_t" != "100%" ]
+}
+
 ## Waits n seconds before proceeding any further
 # $1-Number of seconds to wait
 # USAGE: _simpleTimer "5"
@@ -546,7 +552,12 @@ _isUpdateAvailable() {
 local _g=$1
 local _l=$2
 local _t; _t=$(echo -e "$_g\n$_l" | sort -Vr | head -n 1)
-[ "$_l" != "$_g" ] && [ "$_t" = "$_g" ]
+(
+	[ "$_l" = "$_g" ] && exit 1 # up-to-date
+	[ "$_t" = "$_g" ] && exit 2 # update available
+	[ "$_t" = "$_l" ] && exit 3 # version from the future
+)
+echo "$?"
 }
 
 ## Downloads latest release from GitHub
@@ -571,6 +582,12 @@ _simpleTimer "5" # wait 5 seconds so user can read the output
 _GIT_checkVersion() {
 local _i; _i="$(_GIT_getInfo "repos/mi5hmash/SteamDeckBTRFS/releases/latest")"
 local _v; _v="$(_GIT_getLatestVersion "$_i")"
+local _t; _t="$(_isUpdateAvailable "$_v" "$TOOL_VERSION")"
+case "$_t" in
+	1) return;;
+	2) ;;
+	*) nickName="time traveller"; return;;
+esac
 if ! _isUpdateAvailable "$_v" "$TOOL_VERSION"; then return; fi
 _printUpdateMenu
 if ! [ "$REPLY" = 1 ]; then return; fi
@@ -596,8 +613,11 @@ local _fileName="$s_BUILD$e_patch"
 local _filePath="$PatchPath$_fileName"
 mkdir -p -- "$PatchPath"
 if ! [ -e "$_filePath" ]; then
-	wget -q --show-progress -O "$_filePath" -- "https://github.com/mi5hmash/SteamDeckBTRFS/raw/main/patches/$_fileName" &> /dev/null
-	_ret="$?"
+	_ret=1
+	if [ "$INTERNET_CONNECTION" = "1" ]; then
+		wget -q --show-progress -O "$_filePath" -- "https://github.com/mi5hmash/SteamDeckBTRFS/raw/main/patches/$_fileName" &> /dev/null
+		_ret="$?"
+	fi
 	if [ "$_ret" = 0 ]; then
 		_r=2 # The patch for your current build has been downloaded
 	else
@@ -613,7 +633,7 @@ echo "$_r"
 
 _sayHello() {
 local _i; _i="$(date +%H)" # Get the current hour
-local _a=", $USER! \(^-^)/"
+local _a=", $nickName! \(^-^)/"
 if [ "$_i" -ge 5 ] && [ "$_i" -lt 12 ]; then
 	echo "Good morning$_a"
 elif [ "$_i" -ge 12 ] && [ "$_i" -lt 18 ]; then
@@ -625,7 +645,7 @@ fi
 
 _sayGoodbye() {
 local _i; _i="$(date +%H)" # Get the current hour
-local _a=", $USER! (^-^)"
+local _a=", $nickName! (^-^)"
 if [ "$_i" -ge 5 ] && [ "$_i" -lt 12 ]; then
 	echo "Have a great day$_a"
 elif [ "$_i" -ge 12 ] && [ "$_i" -lt 18 ]; then
@@ -713,8 +733,8 @@ done
 ## Download and Update Menu
 _printUpdateMenu() {
 PS3=$ps3_1
-echo "There is a newer version available, would you like to download and unpack it?"
-echo "$(say "-" 77)"
+echo "There is a newer version available! Would you like to update?"
+echo "$(say "-" 61)"
 REPLY=1 # default reply
 COLUMNS=1
 select _ in "Yes" "No"; do
@@ -789,14 +809,15 @@ echo_I "You can safely close this window now."; exit
 SESSION_GUID="$(uuidgen | tr "[:lower:]" "[:upper:]")"; readonly SESSION_GUID
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd); readonly ROOT_DIR
 declare -r TOOL_NAME="SteamDeckBTRFS"
-declare -r TOOL_VERSION="v1.1.1"
+declare -r TOOL_VERSION="v1.1.2"
 declare -ri PACKAGE_VERSION="100"
 declare -r unknown="unknown"
 declare -r ps3_1="Enter the number of your choice: "
 declare -r git_link="https://github.com/mi5hmash/SteamDeckBTRFS"
 
 ## Username and temporary password
-userName="$USER" # deck
+userName="$USER" # real username (deck)
+nickName="$USER" # for the greetings funcs
 _setPassword "GabeNewell#1" # default password
 
 ## OS INFO
@@ -811,6 +832,7 @@ s_PATCH_AVAILABILITY=0;
 
 ## FLAGS
 FIRST_LAP=1
+INTERNET_CONNECTION="$(_testConnection && echo 1 || echo 0)"
 DEF_RO_STATUS=$(_steamOsReadOnlyStatusBTRFS)
 DEF_USR_HAS_PASSWD=$(_userHasPassword "$userName" && echo 1 || echo 0); readonly DEF_USR_HAS_PASSWD
 
@@ -882,7 +904,7 @@ cd -- "$ROOT_DIR" || return
 clear
 _printTitle
 if [ "$UPDATE_CHECK" = "1" ]; then
-	_GIT_checkVersion
+	[ "$INTERNET_CONNECTION" = "1" ] && _GIT_checkVersion
 else
 	UPDATE_CHECK="1"
 	_writeSettingsJson
