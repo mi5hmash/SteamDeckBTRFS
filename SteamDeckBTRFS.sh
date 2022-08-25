@@ -259,7 +259,7 @@ fi
 ## Backup scripts from SteamDeck
 backupScripts() {
 local _timestamp; _timestamp="$(_createTimestamp "")"
-local _backup="$s_BUILD$_timestamp.backup"
+local _backup="$s_BUILD$_timestamp$e_backup"
 local _tempDir="$TempPath$s_BUILD$_timestamp/"
 echo_I "Trying to backup the scripts..."
 mkdir -p -- "$BackupPath" "$_tempDir"
@@ -348,7 +348,7 @@ echo_S "Script '$1' has been restored." ||
 
 patchScripts() {
 local _tempDir="$TempPath$s_BUILD/"
-local _patch="$s_BUILD$e_patch"
+local _patch="$s_PATCH_CANDIDATE"
 mkdir -p -- "$_tempDir" "$PatchPath"
 echo_I "Searching for a patch..."
 ([ -e "$PatchPath$_patch" ] || exit 3
@@ -365,7 +365,7 @@ sudo patch -fruN -d "$SteamDeckFilesPath" < <(zcat "$_tempDir$n_patch$e_patch"))
 local _err="1:$?"
 local _errb="{$_err} Patching script files has failed"
 case "$_err" in
-	1:0) echo_S "Scripts files on your SteamDeck has been patched.";;
+	1:0) echo_S "Scripts files on your SteamDeck has been patched."; s_PATCH_STATE="P";;
 	1:3) echo_E "{$_err} There is no patch file for your current build '$s_BUILD' in the '$PatchPath' directory.";;
 	1:4) echo_E "{$_err} Files' checksums don't match.";;
 	*) echo_E "$_errb.";;
@@ -376,7 +376,7 @@ rm -rf -- "$TempPath"
 
 unpatchScripts() {
 local _tempDir="$TempPath$s_BUILD/"
-local _patch="$s_BUILD$e_patch"
+local _patch="$s_PATCH_CANDIDATE"
 mkdir -p -- "$_tempDir" "$PatchPath"
 echo_I "Searching for a patch..."
 ([ -e "$PatchPath$_patch" ] || exit 3
@@ -393,7 +393,7 @@ sudo patch -ruN --ignore-whitespace -d "$SteamDeckFilesPath" < <(zcat "$_tempDir
 local _err="2:$?"
 local _errb="{$_err} Unpatching script files has failed"
 case "$_err" in
-	2:0) echo_S "Scripts files on your SteamDeck has been unpatched.";;
+	2:0) echo_S "Scripts files on your SteamDeck has been unpatched."; s_PATCH_STATE="O";;
 	2:3) echo_E "{$_err} There is no patch file for your current build '$s_BUILD' in the '$PatchPath' directory.";;
 	2:4) echo_E "{$_err} Files' checksums don't match.";;
 	*) echo_E "$_errb.";;
@@ -401,6 +401,9 @@ esac
 # Remove directory
 rm -rf -- "$TempPath"
 }
+
+
+### WORKBENCH
 
 ## Prepares Workspace to manually patch the files
 # $1-Backup File Name
@@ -441,15 +444,29 @@ esac
 
 createPatchFile() {
 local _tempDir="$TempPath$s_BUILD/"
-local _patch="$s_BUILD$e_patch"
 local _wrkbDir="$WorkbenchPath"
 local _orgfPath="$_wrkbDir${OriginalFilesPath#*./}"
 local _patchedfPath="$_wrkbDir${PatchedFilesPath#*./}"
+local _patchesCsv="$PatchPath$n_patches$e_csv"
+local _patchesOwnCsv="$PatchPath$n_patches_own$e_csv"
 mkdir -p -- "$_tempDir" "$PatchPath"
+# Check if the patch file already exists.
+if [ -e "$_orgfPath" ] && [ -e "$_patchedfPath" ]; then
+	local _hash1; _hash1="$(_generateIntegrityHash "$_orgfPath")"
+	local _hash2; _hash2="$(_generateIntegrityHash "$_patchedfPath")"
+	local _guid; _guid="$(uuidgen)"
+	local _text; _text="$_hash1;$_guid;O\n$_hash2;$_guid;P"
+	local _patch; _patch="$_guid$e_patch"
+	local _t
+	[ -e "$_patchesOwnCsv" ] && _t=$(grep "$_hash1" "$_patchesOwnCsv")
+	[ -z "$_t" ] && [ -e "$_patchesCsv" ] && _t=$(grep "$_hash1" "$_patchesCsv")
+fi
+( [ -e "$_orgfPath" ] && [ -e "$_patchedfPath" ] || exit 9
+[ -n "$_t" ] && exit 10
 # Create a real patch and unpatch files, compressed with gzip compression level 9
 # More info about creating patches: https://www.howtogeek.com/415442/how-to-apply-a-patch-to-a-file-and-create-patches-in-linux/
 echo_I "Comparing files..."
-(diff -ruN "$_orgfPath" "$_patchedfPath" | gzip -9 > "$_tempDir$n_patch$e_patch"
+diff -ruN "$_orgfPath" "$_patchedfPath" | gzip -9 > "$_tempDir$n_patch$e_patch"
 [ "${PIPESTATUS[0]}" -le 1 ] || exit 3
 echo_S "Patch file created."
 diff -ruN "$_patchedfPath" "$_orgfPath" | gzip -9 > "$_tempDir$n_patch$e_unpatch"
@@ -467,16 +484,32 @@ echo "$PACKAGE_VERSION" > "$_tempDir$n_version" || exit 7
 echo_S "Info about build and version collected."
 # Pack all files with a fake *.patch extension
 echo_I "Trying to pack..."
-_tarPack "$_tempDir" "$PatchPath$s_BUILD$e_patch" || exit 8)
+_tarPack "$_tempDir" "$PatchPath$_patch" || exit 8)
 local _err="99:$?"
 local _errb="{$_err} Creating a patch file has failed"
 case "$_err" in
-	99:0) echo_S "Patch file '$_patch' has been created in the '$PatchPath' directory.";;
+	99:0) echo_S "Patch file '$_patch' has been created in the '$PatchPath' directory."; echo -e "$_text" >> "$_patchesOwnCsv";;
 	99:7) echo_E "$_errb on packing.";;
+	99:9) echo_E "{$_err} Workbench directory does not exist or has a wrong structure.";;
+	99:10) echo_E "{$_err} Patch file already exists.";;
 	*) echo_E "$_errb.";;
 esac
 # Remove directory
 rm -rf -- "$TempPath"
+}
+
+## Generates Inegrity Hash for the files in ScriptFiles collection
+# $1-Script Files Root Path
+_generateIntegrityHash() {
+	local _c;
+	local _t;
+for f in "${ScriptFiles[@]}"
+do
+	mapfile -t -d " " _t < <(sha256sum -b -- "$1$f" 2>/dev/null)
+	_c=$_c"|"${_t[0]}
+done
+mapfile -t -d " " _t < <(echo -n "${_c:1}" | md5sum)
+echo "${_t[0]}"
 }
 
 ## Calculate SHA256 checksums of files in directory
@@ -485,11 +518,11 @@ _dirSHA256sumRW() {
 local _s=1 #status - preassume function failure
 cd -- "$1" || return
 if [ -z "$3" ]; then
-	sha256sum -b -- * > "$OLDPWD/$2"
+	sha256sum -b -- * > "$OLDPWD/$2" # write
 else	
-	sha256sum --status -c -- "$OLDPWD/$2"
+	sha256sum --status -c -- "$OLDPWD/$2" # read
 fi
-_s=$?
+_s=$? # store status
 cd -- "$OLDPWD" || return
 [ "$_s" = 0 ]
 }
@@ -604,20 +637,25 @@ _writeSettingsJson
 exec "$_s"
 }
 
+## Tries to download file from GitHub
+# $1-GitHub path after raw/main/[...]; $2-Output File Path
+_GIT_downloadFile() {
+if [ "$INTERNET_CONNECTION" = "1" ]; then
+	wget -q --show-progress -O "$2" -- "https://github.com/mi5hmash/SteamDeckBTRFS/raw/main/$1" &> /dev/null
+fi
+return "$?"
+}
+
 ## Checks if the patch for a current system build is present in the 'patches' folder
 ## If not true then it tries to download a proper patch
-_GIT_downloadPatch() {
+_GIT_locatePatch() {
 local _ret;
 local _r; _r=1 # It looks like you have the patch for your current build '$s_BUILD' in the '$PatchPath' directory
-local _fileName="$s_BUILD$e_patch"
+local _fileName="$s_PATCH_CANDIDATE"
 local _filePath="$PatchPath$_fileName"
-mkdir -p -- "$PatchPath"
 if ! [ -e "$_filePath" ]; then
-	_ret=1
-	if [ "$INTERNET_CONNECTION" = "1" ]; then
-		wget -q --show-progress -O "$_filePath" -- "https://github.com/mi5hmash/SteamDeckBTRFS/raw/main/patches/$_fileName" &> /dev/null
-		_ret="$?"
-	fi
+	_GIT_downloadFile "$_filePath" "$_filePath" # Try to download the patch file from GitHub
+	_ret="$?"
 	if [ "$_ret" = 0 ]; then
 		_r=2 # The patch for your current build has been downloaded
 	else
@@ -626,6 +664,45 @@ if ! [ -e "$_filePath" ]; then
 	fi
 fi
 echo "$_r"
+}
+
+## On the basis of the scripts on the device, it determines whether the scripts have been patched and which patch will be appropriate
+_specifyPatchCandidateAndState() {
+local _a;
+local _b;
+local _c;
+local _temp; _temp="_temp"
+local _ret;
+_a=$(_generateIntegrityHash "$SteamDeckFilesPath")
+# Search for patch name in '_patches_own.csv' file
+mkdir -p -- "$PatchPath"
+_c="$PatchPath$n_patches_own$e_csv"
+[ -e "$_c" ] && _b=$(grep "$_a" "$_c")
+if [ -z "$_b" ]; then
+_c="$PatchPath$n_patches$e_csv"
+	if ! [ -e "$_c" ]; then
+		_GIT_downloadFile "$_c" "$_c" # Try to download the latest '_patches.csv' from GitHub
+		# Search for patch name in '_patches' dir
+		[ -e "$_c" ] && _b=$(grep "$_a" "$_c")
+	else
+		_b=$(grep "$_a" "$_c")
+		if [ -z "$_b" ]; then
+			_GIT_downloadFile "$_c" "$_c$_temp"
+			_ret="$?"
+			if [ "$_ret" != 0 ]; then
+				rm -f -- "$_c$_temp"
+			else
+				mv -f "$_c$_temp" "$_c"
+				_b=$(grep "$_a" "$_c")
+			fi
+		fi
+	fi
+fi
+if [ -n "$_b" ]; then
+	mapfile -t -d ";" _c < <(echo -n "${_b}")
+	s_PATCH_CANDIDATE="${_c[1]}$e_patch"
+	s_PATCH_STATE="${_c[2]:0:1}"
+fi
 }
 
 
@@ -682,7 +759,8 @@ _printPatchAvailabilityStatus
 _printMainMenu() {
 PS3=$ps3_1 # Set the Select Prompt (PS3)
 REPLY=0 # default reply
-local _opts=("Patch scripts" "Unpatch scripts" "Backup scripts" "Restore backupped scripts")
+local _t; _t=$([ "$s_PATCH_STATE" == "P" ] && echo "Unpatch scripts" || echo "Patch scripts")
+local _opts=("$_t" "Backup scripts" "Restore backupped scripts")
 [ "$FIRST_LAP" = 1 ] &&
 echo -e "$(_sayHello)\nHow may I help you?\n$(say "-" 19)" ||
 echo -e "What else can I do for you? (^-^)\n$(say "-" 33)"
@@ -691,14 +769,12 @@ COLUMNS=1
 select _ in "${_opts[@]}"
 do
 	case "$REPLY" in
-		# Patch scripts
-		1) checkSudo; patchScripts; _sudoTaskFinalize; break;;
-		# Unpatch scripts
-		2) checkSudo; unpatchScripts; _sudoTaskFinalize; break;;
+		# Un/Patch scripts
+		1) checkSudo; if [ "$s_PATCH_STATE" == "P" ]; then unpatchScripts; else patchScripts; fi; _sudoTaskFinalize; break;;
 		# Backup scripts
-		3) backupScripts; break;;
+		2) backupScripts; break;;
 		# Restore backupped scripts
-		4) checkSudo; restoreBackup; _sudoTaskFinalize; break;;
+		3) checkSudo; restoreBackup; _sudoTaskFinalize; break;;
 		# EXIT
 		0) _exit;;
 		## HIDDEN OPTIONS
@@ -751,7 +827,7 @@ _pritnSelectBackupFileMenu() {
 PS3=$ps3_1
 REPLY=0 # default reply
 mkdir -p -- "$BackupPath"
-local _opts; readarray -t _opts < <( find "./$BackupPath" -iname "*.backup" -exec basename {} \; )
+local _opts; readarray -t _opts < <( find "./$BackupPath" -iname "*$e_backup" -exec basename {} \; )
 if [ ${#_opts[@]} -gt 0 ]; then
 	echo -e "Please, select a backup file which you would like to $1"
 	echo "0) Exit to the previous menu"
@@ -763,7 +839,7 @@ if [ ${#_opts[@]} -gt 0 ]; then
 		echo "Unfortunately, there is no file assigned to '$REPLY' option. Please, pick a number from a list of available files."
 	done
 else
-	echo_E "It seems there is no single '*.backup' file in the '$BackupPath' directory. Please, first put a proper backup in there and then try again."
+	echo_E "It seems there is no single '*$e_backup' file in the '$BackupPath' directory. Please, first put a proper backup in there and then try again."
 fi
 }
 
@@ -785,6 +861,13 @@ echo -ne "$clr1$s_NAME $s_VERSION\t\e[1;93m$s_BUILD\t$clr2$s_VARIANT\t$(_sudoSta
 
 _printPatchAvailabilityStatus() {
 local _s
+local _a="PATCHED"
+local _s2;
+case "$s_PATCH_STATE" in
+	"P") _s2="\e[1;96m$_a$clr0";;
+	"O") _s2="\e[1;31mUN$_a$clr0";;
+	*) _s2="\e[1;93m$(echo "$unknown" | tr "[:lower:]" "[:upper:]")$clr0";;
+esac
 local _i=$s_PATCH_AVAILABILITY
 if [ "$_i" = 0 ]; then return; fi
 case "$_i" in
@@ -792,7 +875,7 @@ case "$_i" in
 	2) _s="\e[1;96mDOWNLOADED$clr0";;
 	3) _s="\e[1;31mNOT AVAILABLE$clr0";;
 esac
-echo -e "PATCH FILE: $_s"
+echo -e "SCRIPTS STATUS: $_s2 | PATCH FILE: $_s"
 echo -e "$clr1$(say "=" 64)$clr0"
 }
 
@@ -809,11 +892,11 @@ echo_I "You can safely close this window now."; exit
 SESSION_GUID="$(uuidgen | tr "[:lower:]" "[:upper:]")"; readonly SESSION_GUID
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd); readonly ROOT_DIR
 declare -r TOOL_NAME="SteamDeckBTRFS"
-declare -r TOOL_VERSION="v1.1.2"
-declare -ri PACKAGE_VERSION="100"
+declare -r TOOL_VERSION="v2.0.0"
+declare -ri PACKAGE_VERSION="101"
 declare -r unknown="unknown"
 declare -r ps3_1="Enter the number of your choice: "
-declare -r git_link="https://github.com/mi5hmash/SteamDeckBTRFS"
+declare -r git_link="https://github.com/mi5hmash/$TOOL_NAME"
 
 ## Username and temporary password
 userName="$USER" # real username (deck)
@@ -829,6 +912,8 @@ s_ROOTFS_TYPE=$(findmnt -fn --output FSTYPE /); readonly s_ROOTFS_TYPE
 
 ## PATCH INFO
 s_PATCH_AVAILABILITY=0;
+s_PATCH_CANDIDATE="";
+s_PATCH_STATE="";
 
 ## FLAGS
 FIRST_LAP=1
@@ -854,36 +939,58 @@ declare -r n_chmod="chmod"
 declare -r n_checksums_o="checksums_o"
 declare -r n_checksums_p="checksums_p"
 declare -r n_patch="btrfsPatch"
+declare -r n_patches="_patches"
+declare -r n_patches_own="_patches_own"
 declare -r e_patch=".patch"
 declare -r e_zip=".zip"
+declare -r e_backup=".backup"
+declare -r e_csv=".csv"
 declare -r e_unpatch=".unpatch"
 
 
 ### SETTINGS
 
-declare -r settingsJson="settings.json" ## Settings fileName
+declare -r settingsJson="settings.json" # Settings fileName
+declare -r settingsNames=("UPDATE_CHECK") # Settings Names
+declare -r settingsFormats=("i") # Settings Formats (i - integer; s - string)
+declare -r settingsDefaults=("1") # Settings Default Values
 
 ## Reads settings from a 'settingsJson' config file
 _readSettingsJson() {
 _jq() { jq -r ".$1" "$settingsJson"; }
+local _t;
 # Settings to read
-UPDATE_CHECK="$(_jq "UPDATE_CHECK")"
+for (( i=0; i<"${#settingsNames[@]}"; i++ ))
+do
+	_t="$(_jq "${settingsNames[$i]}")"
+	_t=$([ -z "$_t" ] || [ "$_t" = "null" ] && echo "${settingsDefaults[$i]}" || echo "$_t")
+	printf -v "${settingsNames[$i]}" -- "%${settingsFormats[$i]}" "$_t"
+done
 }
 
 ## Writes settings to a 'settingsJson' config file
-_writeSettingsJson() { jq -n ".UPDATE_CHECK=\"$UPDATE_CHECK\"" > "$settingsJson"; }
+_writeSettingsJson() {
+local _n;
+local _q;
+# Settings to write
+for (( i=0; i<"${#settingsNames[@]}"; i++ ))
+do
+	_n=${settingsNames[$i]}
+	[ "$i" -gt 0 ] && _q="$_q | "
+	_q="$_q.$_n=\"${!_n}\""
+done
+jq -n "$_q" > "$settingsJson";
+}
 
 ## Loads Settings from an existing 'settingsJson' config file or creates a new one
 loadSettingsJson() {
-# Settings and their default values
-UPDATE_CHECK="1"
-# Create new 'settingsJson' config file or load settings from an existing one
 local _s="$settingsJson"
 if ! [ -e "./$_s" ]; then
 	touch "$_s"
-	_writeSettingsJson
+	_readSettingsJson # in this case it sets the default settings
+	_writeSettingsJson # write new settings file
 else
-	_readSettingsJson
+	_readSettingsJson # load settings from the existing file
 fi
 }
 
@@ -909,7 +1016,8 @@ else
 	UPDATE_CHECK="1"
 	_writeSettingsJson
 fi
-s_PATCH_AVAILABILITY="$(_GIT_downloadPatch)"
+_specifyPatchCandidateAndState
+s_PATCH_AVAILABILITY="$(_GIT_locatePatch)"
 ## Main Menu Loop
 while true
 do
