@@ -61,12 +61,12 @@ A majority of options require root privileges. If you've already set your custom
 ## Adding own patches
 The tool uses the data from the ***"./patches/_patches.csv"*** file to identify the correct patch. Info about patches created with a workbench is added to the ***"./patches/_patches_own.csv"*** file. That file overrides data from the first mentioned file.
 The structure of both files is as follows:
-
-<span style="color:blue">e4765353a6fe36f254e67a3f7c62719e</span>;<span style="color:green">b5ce0513-9d81-4c16-b7f9-c3b3fa2cee16</span>;<span style="color:red">O</span>
-<span style="color:blue">9d212ba6f4e7afce19d8eb3a836065af</span>;<span style="color:green">b5ce0513-9d81-4c16-b7f9-c3b3fa2cee16</span>;<span style="color:red">P</span>
-
-##### EXPLANATION:
-<span style="color:blue">md5 checksum of sha256 checksums of the script files separated by a "|" character</span>;<span style="color:green">random GUID which is used as patch filename</span>;<span style="color:red">letter "P" (Patched) or "O" (Original)</span>
+```markdown
+e4765353a6fe36f254e67a3f7c62719e;b5ce0513-9d81-4c16-b7f9-c3b3fa2cee16;O
+9d212ba6f4e7afce19d8eb3a836065af;b5ce0513-9d81-4c16-b7f9-c3b3fa2cee16;P
+```
+#### EXPLANATION:
+md5 checksum of sha256 checksums of the script files separated by a "|" character;random GUID which is used as patch filename;letter "P" (Patched) or "O" (Original)
 
 # :fire: Issues
 All the problems I've encountered during my tests have been fixed on the go. If you find any other issue (hope you won't) then please, feel free to report it [there](https://github.com/mi5hmash/SteamDeckBTRFS/issues).
