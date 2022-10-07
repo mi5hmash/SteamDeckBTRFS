@@ -653,14 +653,17 @@ local _ret;
 local _r; _r=1 # It looks like you have the patch for your current build '$s_BUILD' in the '$PatchPath' directory
 local _fileName="$s_PATCH_CANDIDATE"
 local _filePath="$PatchPath$_fileName"
-if ! [ -e "$_filePath" ]; then
+# If _fileName is null then there is no patch anywhere.
+if [ -z "$_fileName" ]; then
+_r=3; # As for now there is no patch available for your current build
+elif ! [ -e "$_filePath" ]; then
 	_GIT_downloadFile "$_filePath" "$_filePath" # Try to download the patch file from GitHub
 	_ret="$?"
 	if [ "$_ret" = 0 ]; then
 		_r=2 # The patch for your current build has been downloaded
 	else
 		rm -f "$_filePath"
-		_r=3 # As for now there is no patch available for your current build
+		_r=3
 	fi
 fi
 echo "$_r"
@@ -679,6 +682,7 @@ mkdir -p -- "$PatchPath"
 _c="$PatchPath$n_patches_own$e_csv"
 [ -e "$_c" ] && _b=$(grep "$_a" "$_c")
 if [ -z "$_b" ]; then
+# Search for patch name in '_patches.csv' file
 _c="$PatchPath$n_patches$e_csv"
 	if ! [ -e "$_c" ]; then
 		_GIT_downloadFile "$_c" "$_c" # Try to download the latest '_patches.csv' from GitHub
@@ -892,7 +896,7 @@ echo_I "You can safely close this window now."; exit
 SESSION_GUID="$(uuidgen | tr "[:lower:]" "[:upper:]")"; readonly SESSION_GUID
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd); readonly ROOT_DIR
 declare -r TOOL_NAME="SteamDeckBTRFS"
-declare -r TOOL_VERSION="v2.0.0"
+declare -r TOOL_VERSION="v2.0.1"
 declare -ri PACKAGE_VERSION="101"
 declare -r unknown="unknown"
 declare -r ps3_1="Enter the number of your choice: "
