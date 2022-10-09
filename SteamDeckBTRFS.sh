@@ -30,10 +30,69 @@ done
 echo "."
 }
 
+## Return first n characters
+# $1-Input string; $2-Length
+# USAGE: "$(left "test" 2)"
+left() { echo "${1::$2}"; }
+## Return string without first n characters
+leftc() { echo "${1::$2}"; }
+
+## Return last n characters
+# $1-Input string; $2-Length
+# USAGE: "$(right "test" 2)"
+right() { echo "${1:${#1}-$2:$2}"; }
+## Return string without last n characters
+rightc() { echo "${1:0:$2}"; }
+
+## Return string of a specified length starting from the given offset
+# $1-Input string; $2-Offset; $3-Length
+# USAGE: "$(substr "test" 1 1)"
+substr() { echo "${1:$2:$3}"; }
+## Cut characters from the left and right side of an input string
+# $1-Input string; $2-Chars to cut from left; $3-Chars to cut from right
+substrc() { echo "${1:$2:$((-$3))}"; }
+
+## Remove color codes from a string
+# $1-Input string
+uncolorizeStr() { echo "$1" | sed -r 's/\\e\[[[:digit:]]+;[[:digit:]]+m//g'; }
+
 ## Repeat input string n times
 # $1-Input string; $2-Times
 # USAGE: "$(say "a" 10)"
 say() { for _ in $(seq 1 "${2:-1}"); do echo -n "$1"; done; }
+
+## Write a pattern of the specified length
+# $1-Pattern; $2-Length
+# USAGE: "$(sayp "a" 10)"
+sayp() {
+local _u; _u="$(uncolorizeStr "$1")"
+local _a; _a="$(($2 / ${#_u}))"
+echo -n "$(say "$1" $_a)"
+_a="$(($2 % ${#_u}))"
+echo -n "$(left "$1" $_a)"
+}
+
+## Write the input string in the middle of the line
+# $1-Input string; $2-Line width; $3-Pattern
+# USAGE: "$(saym "a" 10)"
+saym() {
+local _u; _u="$(uncolorizeStr "$1")"
+local _p; _p="$(( ( $2 - ${#_u} ) / 2 ))"
+echo -n "$(sayp "${3:- }" $_p)"
+echo -n "$1"
+_p="$(( _p + (( $2 - ${#_u} ) % 2) ))"
+echo -n "$(sayp "${3:- }" $_p)"
+}
+
+## Write the input string alligned to the right
+# $1-Input string; $2-Line width; $3-Pattern
+# USAGE: "$(sayr "a" 10)"
+sayr() {
+local _u; _u="$(uncolorizeStr "$1")"
+local _p; _p="$(( $2 - ${#_u} ))"
+echo -n "$(sayp "${3:- }" $_p)"
+echo "$1"
+}
 
 ## Get password variable
 _getPassword() { _decrypt "$passWord"; }
@@ -621,7 +680,6 @@ case "$_t" in
 	2) ;;
 	*) nickName="time traveller"; return;;
 esac
-if ! _isUpdateAvailable "$_v" "$TOOL_VERSION"; then return; fi
 _printUpdateMenu
 if ! [ "$REPLY" = 1 ]; then return; fi
 local _f; _f=$TOOL_NAME\_$_v$e_zip
@@ -738,25 +796,34 @@ fi
 
 ## Title Banner
 _printTitle() {
-echo -e "$clr1$(say "-*" 32)$clr0"
+local _l=64
+echo -e "$clr1$(sayp "-*" $_l)$clr0"
 echo -e "$clr1"" ___ _                  ___         _   ""\e[5;95m"" ___ _____ ___  ___ ___ ""$clr0"
 echo -e "$clr1""/ __| |_ ___ __ _ _ __ |   \ ___ __| |_ ""\e[5;95m""| _ )_   _| _ \| __/ __|""$clr0"
 echo -e "$clr1""\__ \  _/ -_) _\` | '  \| |) / -_) _| / /""\e[5;95m""| _ \ | | |   /| _|\__ \\""\\$clr0"
 echo -e "$clr1""|___/\__\___\__,_|_|_|_|___/\___\__|_\_\\""\\\e[5;95m""|___/ |_| |_|_\|_| |___/""$clr0"
-echo -e "$clr1""$(say " " 38)patcher by Mi5hmasH ""$clr2""$TOOL_VERSION""$clr0"
-echo -e "$clr1$(say "*-" 32)$clr0"
-echo -e "$clr1$(say "=" 64)$clr0"
-echo -e "$clr2""  PATCH, BACKUP or RESTORE SteamDeck's sdcard related scripts   ""$clr0"
-echo -e "$clr2""   Make your SteamDeck friendly with btrfs formatted sdcards    ""$clr0"
-echo -e "$clr1$(say "=" 64)$clr0"
-echo -e "$clr2""           Based on Trevo525's 'btrfdeck' repository            ""$clr0"
-echo -e "$clr2""              https://github.com/Trevo525/btrfdeck              ""$clr0"
-echo -e "$clr1$(say "=" 64)$clr0"
-echo -e "$clr2""My repo: $git_link             ""$clr0"
-echo -e "$clr1$(say "=" 64)$clr0"
+echo -e "$clr1""$(sayr "patcher by Mi5hmasH $clr2""$TOOL_VERSION" $_l)""$clr0"
+echo -e "$clr1$(sayp "*-" $_l)$clr0"
+echo -e "$clr1$(say "=" $_l)$clr0"
+echo -e "$clr2""$(saym "PATCH, BACKUP or RESTORE SteamDeck's sdcard related scripts" $_l)""$clr0"
+echo -e "$clr2""$(saym "Make your SteamDeck friendly with btrfs formatted sdcards" $_l)""$clr0"
+echo -e "$clr1$(say "=" $_l)$clr0"
+echo -e "$clr2""$(saym "Based on Trevo525's 'btrfdeck' repository" $_l)""$clr0"
+echo -e "$clr2""$(saym "https://github.com/Trevo525/btrfdeck" $_l)""$clr0"
+echo -e "$clr1$(say "=" $_l)$clr0"
+echo -e "$clr2""My repo: $git_link""$clr0"
+echo -e "$clr1$(say "=" $_l)$clr0"
 _printOsInfo
-echo -e "$clr1$(say "=" 64)$clr0"
+echo -e "$clr1$(say "=" $_l)$clr0"
 _printPatchAvailabilityStatus
+echo -e "$clr1$(say "=" $_l)$clr0"
+}
+
+## Print HiddenOptions
+_printHiddenOptions() {
+echo "97) Toggle steamos-readonly status"
+echo "98) Prepare a workbench"
+echo "99) Create a patch file"
 }
 
 ## Main Menu
@@ -769,9 +836,9 @@ local _opts=("$_t" "Backup scripts" "Restore backupped scripts")
 echo -e "$(_sayHello)\nHow may I help you?\n$(say "-" 19)" ||
 echo -e "What else can I do for you? (^-^)\n$(say "-" 33)"
 echo "0) Exit"
+[ "$SHOW_HIDDEN_OPTIONS" = "1" ] && echo -e "$(_printHiddenOptions)"
 COLUMNS=1
-select _ in "${_opts[@]}"
-do
+select _ in "${_opts[@]}"; do
 	case "$REPLY" in
 		# Un/Patch scripts
 		1) checkSudo; if [ "$s_PATCH_STATE" == "P" ]; then unpatchScripts; else patchScripts; fi; _sudoTaskFinalize; break;;
@@ -797,8 +864,9 @@ done
 ## Are We Done Menu
 _printAreWeDoneMenu() {
 PS3=$ps3_1
-echo "Are we done?"
-echo "$(say "-" 12)"
+local _s; _s="Are we done?"
+echo "$_s"
+echo -e "$(say "-" ${#_s})"
 REPLY=1 # default reply
 COLUMNS=1
 select _ in "Yes" "No"; do
@@ -813,8 +881,9 @@ done
 ## Download and Update Menu
 _printUpdateMenu() {
 PS3=$ps3_1
-echo "There is a newer version available! Would you like to update?"
-echo "$(say "-" 61)"
+local _s; _s="There is a newer version available! Would you like to update?"
+echo "$_s"
+echo -e "$(say "-" ${#_s})"
 REPLY=1 # default reply
 COLUMNS=1
 select _ in "Yes" "No"; do
@@ -833,7 +902,9 @@ REPLY=0 # default reply
 mkdir -p -- "$BackupPath"
 local _opts; readarray -t _opts < <( find "./$BackupPath" -iname "*$e_backup" -exec basename {} \; )
 if [ ${#_opts[@]} -gt 0 ]; then
-	echo -e "Please, select a backup file which you would like to $1"
+	local _s; _s="Please, select a backup file which you would like to $1"
+	echo -e "$_s"
+	echo -e "$(say - ${#_s})"
 	echo "0) Exit to the previous menu"
 	COLUMNS=1
 	local _o; select _o in "${_opts[@]}"
@@ -848,13 +919,13 @@ fi
 }
 
 restoreBackup() {
-_pritnSelectBackupFileMenu "restore:\n$(say - 61)"
+_pritnSelectBackupFileMenu "restore:"
 # Call restoreScripts function
 [ "$REPLY" = 0 ] || restoreScripts "$REPLY"
 }
 
 chooseBackup() {
-_pritnSelectBackupFileMenu "use:\n$(say - 57)"
+_pritnSelectBackupFileMenu "use:"
 # Call _prepareWorkbench function
 [ "$REPLY" = 0 ] || _prepareWorkbench "$REPLY"
 }
@@ -880,7 +951,6 @@ case "$_i" in
 	3) _s="\e[1;31mNOT AVAILABLE$clr0";;
 esac
 echo -e "SCRIPTS STATUS: $_s2 | PATCH FILE: $_s"
-echo -e "$clr1$(say "=" 64)$clr0"
 }
 
 _exit() {
@@ -896,7 +966,7 @@ echo_I "You can safely close this window now."; exit
 SESSION_GUID="$(uuidgen | tr "[:lower:]" "[:upper:]")"; readonly SESSION_GUID
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd); readonly ROOT_DIR
 declare -r TOOL_NAME="SteamDeckBTRFS"
-declare -r TOOL_VERSION="v2.0.1"
+declare -r TOOL_VERSION="v2.0.2"
 declare -ri PACKAGE_VERSION="101"
 declare -r unknown="unknown"
 declare -r ps3_1="Enter the number of your choice: "
@@ -955,9 +1025,9 @@ declare -r e_unpatch=".unpatch"
 ### SETTINGS
 
 declare -r settingsJson="settings.json" # Settings fileName
-declare -r settingsNames=("UPDATE_CHECK") # Settings Names
-declare -r settingsFormats=("i") # Settings Formats (i - integer; s - string)
-declare -r settingsDefaults=("1") # Settings Default Values
+declare -r settingsNames=("UPDATE_CHECK" "SHOW_HIDDEN_OPTIONS") # Settings Names
+declare -r settingsFormats=("i" "i") # Settings Formats (i - integer; s - string)
+declare -r settingsDefaults=("1" "0") # Settings Default Values
 
 ## Reads settings from a 'settingsJson' config file
 _readSettingsJson() {
