@@ -4,7 +4,10 @@
 [![Visual Studio Code](https://img.shields.io/badge/--007ACC?logo=visual%20studio%20code&logoColor=ffffff)](https://code.visualstudio.com/)
 
 # :interrobang: SteamDeckBTRFS - What is it?
-<img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/cover.png" alt="cover" width="460"/>
+<p float="left">
+  <img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/cover.png" alt="cover" width="460" />
+  <img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/iconart.png" alt="icon" width="256" />
+</p>
 
 It's a shell script for lazy people like me who want to use [BTRFS](https://btrfs.wiki.kernel.org/index.php/Main_Page) formatted microSD cards on their decks, but don't want to type many commands into a command line. Worry no more as I got you covered.
 
@@ -41,6 +44,7 @@ Makes a backup of script files and stores it in the ***"./backup/"*** directory.
 ### 3. Restore backupped scripts
 Restores a backup, chosen from a ***"./backup/"*** directory.
 ## Hidden functions
+You can make the program display these options in the main menu by setting the "SHOW_HIDDEN_OPTIONS" flag to "1" in the "settings.json" file.
 ### 97. Toggle steamos-readonly status
 Allows you to change the steamos-readonly status to the opposite of the current one.
 ### 98. Prepare a workbench
