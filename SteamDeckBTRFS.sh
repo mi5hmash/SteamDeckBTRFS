@@ -290,12 +290,13 @@ else
 fi
 }
 
-## Pokes a hidden 'steamos-readonly' function which toggles readonly status
+## Toggles DEF_RO_STATUS
+# Previously it used a hidden function which toggles readonly status "$(sudo steamos-readonly toggle)", but it didn't work out for the logic I wrote.
 _steamOsReadOnlyToggle() {
 local _c # color
-local _s; _s="$(sudo steamos-readonly toggle)" # status
-[ "$_s" = "enabled" ] && _c="\e[1;96m" || _c="\e[1;31m"
-echo -e "SteamOS filesystem readonly is now $_c$_s$clr0."
+if [ "$DEF_RO_STATUS" = "enabled" ]; then DEF_RO_STATUS="disabled"; _c="\e[1;31m"; 
+else DEF_RO_STATUS="enabled"; _c="\e[1;96m"; fi
+echo -e "SteamOS filesystem readonly is now $_c$DEF_RO_STATUS$clr0."
 }
 
 ## Read steamos-readonly status without sudo need
@@ -850,7 +851,7 @@ select _ in "${_opts[@]}"; do
 		0) _exit;;
 		## HIDDEN OPTIONS
 		# steamos-readonly toggle
-		97) checkSudo; _steamOsReadOnlyToggle; DEF_RO_STATUS=$(_steamOsReadOnlyStatusBTRFS); _sudoTaskFinalize; break;;
+		97) checkSudo; _steamOsReadOnlyToggle; _sudoTaskFinalize; break;;
 		# Prepare a workbench
 		98) echo; chooseBackup; break;;
 		# Create a patch file
