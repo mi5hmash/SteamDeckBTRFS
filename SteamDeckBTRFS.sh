@@ -313,6 +313,20 @@ else
 fi
 }
 
+## Install package using pacman
+# $1-Package Name
+_installPackageWithPacman() {
+	local _p="$1"
+	pacman -Qi "$_p" &> /dev/null
+	local _er="$?"
+	[ "$_er" = 0 ] && return
+	sudo pacman -S "$_p" --noconfirm &> /dev/null
+	pacman -Qi "$_p" &> /dev/null
+	_er="$?"
+	[ "$_er" = 0 ] && echo_I "'$_p' package got installed." && return
+	echo_E "Couldn't install '$_p' package."
+}
+
 
 ### BACKUP
 
@@ -419,6 +433,7 @@ echo_S "Patch upacked."
 echo_I "Verifying checksums..." # Verify sha256 checksums
 _dirSHA256sumRW "$SteamDeckFilesPath" "$_tempDir$n_checksums_o" 1 || exit 4
 echo_S "Files checksums verified."
+_installPackageWithPacman "patch" # Try to install patch package if it's not installed
 echo_I "Trying to patch..."
 sudo patch --dry-run -fruN -d "$SteamDeckFilesPath" < <(zcat "$_tempDir$n_patch$e_patch") || exit 7
 sudo patch -fruN -d "$SteamDeckFilesPath" < <(zcat "$_tempDir$n_patch$e_patch"))
@@ -447,6 +462,7 @@ echo_S "Patch upacked."
 echo_I "Verifying checksums..." # Verify sha256 checksums
 _dirSHA256sumRW "$SteamDeckFilesPath" "$_tempDir$n_checksums_p" 1 || exit 4
 echo_S "Files checksums verified."
+_installPackageWithPacman "patch" # Try to install patch package if it's not installed
 echo_I "Trying to unpatch..."
 sudo patch --dry-run --ignore-whitespace -ruN -d "$SteamDeckFilesPath" < <(zcat "$_tempDir$n_patch$e_unpatch") || exit 7
 sudo patch -ruN --ignore-whitespace -d "$SteamDeckFilesPath" < <(zcat "$_tempDir$n_patch$e_unpatch"))
@@ -976,7 +992,7 @@ echo_I "You can safely close this window now."; exit
 SESSION_GUID="$(uuidgen | tr "[:lower:]" "[:upper:]")"; readonly SESSION_GUID
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd); readonly ROOT_DIR
 declare -r TOOL_NAME="SteamDeckBTRFS"
-declare -r TOOL_VERSION="v2.0.3"
+declare -r TOOL_VERSION="v2.0.4"
 declare -ri PACKAGE_VERSION="102"
 declare -r unknown="unknown"
 declare -r ps3_1="Enter the number of your choice: "
