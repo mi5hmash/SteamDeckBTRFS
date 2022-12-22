@@ -1,6 +1,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blueviolet.svg)](https://opensource.org/licenses/MIT)
 [![Release Version](https://img.shields.io/github/v/tag/mi5hmash/SteamDeckBTRFS?label=version)](https://github.com/mi5hmash/SteamDeckBTRFS/releases/latest)
-![Latest Known Supported SteamOS](https://img.shields.io/badge/Latest%20Suppored%20SteamOS-3.3.2%20--%20build%2020221005.1-success)
+![Latest Known Supported SteamOS](https://img.shields.io/badge/Latest%20Suppored%20SteamOS-3.3.4%20--%20build%2020221221.2-success)
 [![Visual Studio Code](https://img.shields.io/badge/VS%20Code-007ACC?logo=visual%20studio%20code&logoColor=ffffff)](https://code.visualstudio.com/)
 
 # :interrobang: SteamDeckBTRFS - What is it?
@@ -19,7 +19,11 @@ Everything has been well explained in the
 [btrfdeck repository](https://github.com/Trevo525/btrfdeck) by [Trevo525](https://github.com/Trevo525). Instead of copy-pasting everything from there here and thus committing plagiarism, I will just encourage you to go there and read the original content of that repo.
 # :runner: Running the script
 Grab the [latest release](https://github.com/mi5hmash/SteamDeckBTRFS/releases/latest) and unpack it on your Steam Deck.
-Then right-click on the ***'SteamDeckBTRFS.sh'*** and select "Run in Konsole". 
+Then right-click on the ***'SteamDeckBTRFS.sh'*** and select *"Properties"*. Navigate to "Permissions" tab and make sure that an "Is executable" checkbox is ticked.
+
+<img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/permissions.png" alt="permissions" width="415"/>
+
+Then click **OK** and once again right-click on the ***'SteamDeckBTRFS.sh'***, but this time select *"Run in Konsole"*. 
 
 <img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/run.png" alt="run" width="415"/>
 
@@ -71,6 +75,12 @@ e4765353a6fe36f254e67a3f7c62719e;b5ce0513-9d81-4c16-b7f9-c3b3fa2cee16;O
 ```
 #### EXPLANATION:
 md5 checksum of sha256 checksums of the script files separated by a "|" character;random GUID which is used as patch filename;letter "P" (Patched) or "O" (Original)
+
+## Mounting options
+| Build             | Mounting options                                                            |
+|-------------------|-----------------------------------------------------------------------------|
+| **< 20221221.2**  | **compress-force=zstd:15**                                                  |
+| **>= 20221221.2** | **compress-force=zstd:6**, **lazytime**, **space_cache=v2**, **ssd_spread** |
 
 # :fire: Issues
 All the problems I've encountered during my tests have been fixed on the go. If you find any other issue (hope you won't) then please, feel free to report it [there](https://github.com/mi5hmash/SteamDeckBTRFS/issues).

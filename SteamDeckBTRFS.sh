@@ -411,7 +411,7 @@ local _tempDir="$TempPath$s_BUILD/"
 local _patch="$s_PATCH_CANDIDATE"
 mkdir -p -- "$_tempDir" "$PatchPath"
 echo_I "Searching for a patch..."
-([ -e "$PatchPath$_patch" ] || exit 3
+( [ -n "$_patch" ] && [ -e "$PatchPath$_patch" ] || exit 3
 echo_S "Patch file found."
 echo_I "Trying to unpack..." # Unpack
 tar -xzf "$PatchPath$_patch" -C "$_tempDir" || exit 8
@@ -439,7 +439,7 @@ local _tempDir="$TempPath$s_BUILD/"
 local _patch="$s_PATCH_CANDIDATE"
 mkdir -p -- "$_tempDir" "$PatchPath"
 echo_I "Searching for a patch..."
-([ -e "$PatchPath$_patch" ] || exit 3
+( [ -n "$_patch" ] && [ -e "$PatchPath$_patch" ] || exit 3
 echo_S "Patch file found."
 echo_I "Trying to unpack..." # Unpack
 tar -xzf "$PatchPath$_patch" -C "$_tempDir" || exit 8
@@ -478,7 +478,7 @@ _prepareWorkbench_cleanup() { rm -rf -- "$_wrkbDir"; }
 _prepareWorkbench_cleanup
 mkdir -p -- "$_intelfPath" "$_orgfPath" "$_patchedfPath"
 echo_I "Unpacking the backup archieve..." # unpack
-(tar -xzf "$BackupPath$_backup" -C "$_intelfPath" || exit 8
+( tar -xzf "$BackupPath$_backup" -C "$_intelfPath" || exit 8
 echo_I "Verifying checksums..." # verify sha256 checksums
 _dirSHA256sumRW "$_intelfPath" "$_intelfPath$n_checksums_o" 1 || exit 4
 # Copy scripts
@@ -768,6 +768,15 @@ if [ -n "$_b" ]; then
 fi
 }
 
+## Set script files adequate for current Steam OS build
+_setScriptFiles() {
+if [ "$(_isUpdateAvailable "20221221.1" "$s_BUILD")" -eq 2 ]; then
+	ScriptFiles=("sdcard-mount.sh" "format-sdcard.sh")
+else
+	ScriptFiles=("sdcard-mount.sh" "format-device.sh")
+fi
+}
+
 
 ### MENUS
 
@@ -967,8 +976,8 @@ echo_I "You can safely close this window now."; exit
 SESSION_GUID="$(uuidgen | tr "[:lower:]" "[:upper:]")"; readonly SESSION_GUID
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd); readonly ROOT_DIR
 declare -r TOOL_NAME="SteamDeckBTRFS"
-declare -r TOOL_VERSION="v2.0.2"
-declare -ri PACKAGE_VERSION="101"
+declare -r TOOL_VERSION="v2.0.3"
+declare -ri PACKAGE_VERSION="102"
 declare -r unknown="unknown"
 declare -r ps3_1="Enter the number of your choice: "
 declare -r git_link="https://github.com/mi5hmash/$TOOL_NAME"
@@ -1007,7 +1016,7 @@ declare -r WorkbenchPath="./workbench/"
 declare -r SteamDeckFilesPath="/usr/lib/hwsupport/"
 
 ## FILENAMES & EXTENSIONS
-declare -r ScriptFiles=("sdcard-mount.sh" "format-sdcard.sh")
+declare ScriptFiles; _setScriptFiles; readonly ScriptFiles
 declare -r n_build="build"
 declare -r n_version="version"
 declare -r n_chmod="chmod"
