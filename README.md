@@ -13,13 +13,13 @@ It's a shell script for lazy people like me who want to use [BTRFS](https://btrf
 
 **Despite that it's simple, you're still <mark>using it at your own risk</mark>. I've tried my best to make it foolproof and I always run tests before release until I consider it stable, but some things may show up only after a long time of use. You've been warned.**
 # :tipping_hand_person: Yet another repository? | How is it different?
-There are other repositories like mine. They are based on replacing entire scripts with the ones that have been already patched. My approach is to **patch the original scripts directly** using a small patch file. My tool also lets you **perform a reverse patch (unpatch)** operation on the patched scripts or **create a backup** of original scripts so it can be used later to **restore original files**.
+There are other repositories like mine. They are based on replacing entire scripts with the ones that have been already patched. My approach is to **patch the original scripts directly** using a small patch file. My tool also lets you **perform a reverse patch (unpatch)** operation on the patched scripts or **create a backup** of the original scripts so they can be restored later (**restore backup**).
 # :performing_arts: Pros and cons
 Everything has been well explained in the 
 [btrfdeck repository](https://github.com/Trevo525/btrfdeck) by [Trevo525](https://github.com/Trevo525). Instead of copy-pasting everything from there here and thus committing plagiarism, I will just encourage you to go there and read the original content of that repo.
 # :runner: Running the script
 Grab the [latest release](https://github.com/mi5hmash/SteamDeckBTRFS/releases/latest) and unpack it on your Steam Deck.
-Then right-click on the ***'_Create a Shortcut on Desktop.sh'*** and select *"Properties"*. Navigate to "Permissions" tab and make sure that an "Is executable" checkbox is ticked.
+Then right-click on the ***'_Create a Shortcut on Desktop.sh'*** and select *"Properties"*. Navigate to the "Permissions" tab and make sure that an "Is executable" checkbox is ticked.
 
 <img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/permissions.png" alt="permissions" width="415"/>
 
@@ -30,7 +30,7 @@ You can also click twice and execute that script.
 
 A desktop shortcut will be created.
 
-<img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/desktop_icon.png" alt="run" width="280"/>
+<img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/desktop_icon.png" alt="desktop_icon" width="280"/>
 
 **Do not attempt to execute 'SteamDeckBTRFS.sh' by clicking twice on it, because this will run the script in a hidden window.**
 
@@ -48,23 +48,23 @@ Safely terminates the script.
 ### 1. Patch | Unpatch scripts
 Tries to patch or reverse patch the scripts on Steam Deck if a compatible patch exists in the ***"./patches/"*** directory. Before doing so you would want to run **"2. Backup scripts"** option just in case you need it later. 
 
-> **Note:** Unpatch option works only when the scripts was previously patched by this tool.
+> **Note:** Unpatch option works only when the scripts were previously patched by this tool.
 
 ### 2. Backup scripts
 Makes a backup of script files and stores it in the ***"./backup/"*** directory.
 ### 3. Restore backupped scripts
-Restores a backup, chosen from a ***"./backup/"*** directory.
+Restores a backup selected from a ***"./backup/"*** directory.
 ## Hidden functions
 You can make the program display these options in the main menu by setting the **"SHOW_HIDDEN_OPTIONS"** flag to **"1"** in the ***"settings.json"*** file.
 ### 97. Toggle steamos-readonly status
 Allows you to change the steamos-readonly status to the opposite of the current one.
 ### 98. Prepare a workbench
-Unpacks a previously made backup to ***"./workbench/original/"*** directory and copies script files to ***"./workbench/patched/"*** directory. Having all that set, you can try to make a change to the scripts inside the ***"./workbench/patched/"*** directory.
+Unpacks a previously made backup to the ***"./workbench/original/"*** directory and copies script files to the ***"./workbench/patched/"*** directory. Having all that set, you can try to make a change to the scripts inside the ***"./workbench/patched/"*** directory.
 
 > **Note:** There are additional files in the ***"./workbench/org_intel/"*** directory that are not needed to create the patch, but may be helpful.
 
 ### 99. Create a patch file
-After you change everything you want, you can run this option to compare files from both directories and get your own patch in result. The file will be saved in the ***"./patches/"*** directory. 
+After you change everything you want, you can run this option to compare files from both directories and get your own patch as the result. The file will be saved in the ***"./patches/"*** directory. 
 
 > **Note:** You have to run it from a SteamOS on a Steam Deck as it will take the current SteamOS build as a patch version. Using other Linux distros won't work.
 
