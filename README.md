@@ -19,15 +19,22 @@ Everything has been well explained in the
 [btrfdeck repository](https://github.com/Trevo525/btrfdeck) by [Trevo525](https://github.com/Trevo525). Instead of copy-pasting everything from there here and thus committing plagiarism, I will just encourage you to go there and read the original content of that repo.
 # :runner: Running the script
 Grab the [latest release](https://github.com/mi5hmash/SteamDeckBTRFS/releases/latest) and unpack it on your Steam Deck.
-Then right-click on the ***'SteamDeckBTRFS.sh'*** and select *"Properties"*. Navigate to "Permissions" tab and make sure that an "Is executable" checkbox is ticked.
+Then right-click on the ***'_Create a Shortcut on Desktop.sh'*** and select *"Properties"*. Navigate to "Permissions" tab and make sure that an "Is executable" checkbox is ticked.
 
 <img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/permissions.png" alt="permissions" width="415"/>
 
-Then click **OK** and once again right-click on the ***'SteamDeckBTRFS.sh'***, but this time select *"Run in Konsole"*. 
+Then click **OK** and once again right-click on the ***'_Create a Shortcut on Desktop'***, but this time select *"Run in Konsole"*.
+You can also click twice and execute that script. 
 
 <img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/run.png" alt="run" width="415"/>
 
-**Do not attempt to execute it by clicking twice on it, because this will run the script in a hidden window.**
+A desktop shortcut will be created.
+
+<img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/desktop_icon.png" alt="run" width="280"/>
+
+**Do not attempt to execute 'SteamDeckBTRFS.sh' by clicking twice on it, because this will run the script in a hidden window.**
+
+**Do not click on 'Add to Steam' and try to execute 'SteamDeckBTRFS.sh' from the Gaming Mode. It's meant to be run from the desktop.**
 
 # :alarm_clock: Updating the tool and getting the latest patch
 Starting from version 1.1.0, the script checks on each launch if a newer release is available. If so, it asks the user for permission to download and update the tool. 
@@ -48,7 +55,7 @@ Makes a backup of script files and stores it in the ***"./backup/"*** directory.
 ### 3. Restore backupped scripts
 Restores a backup, chosen from a ***"./backup/"*** directory.
 ## Hidden functions
-You can make the program display these options in the main menu by setting the "SHOW_HIDDEN_OPTIONS" flag to "1" in the "settings.json" file.
+You can make the program display these options in the main menu by setting the **"SHOW_HIDDEN_OPTIONS"** flag to **"1"** in the ***"settings.json"*** file.
 ### 97. Toggle steamos-readonly status
 Allows you to change the steamos-readonly status to the opposite of the current one.
 ### 98. Prepare a workbench
@@ -66,7 +73,10 @@ After completion of each function, you will be asked if that's all for now. You 
 # :mega: Additional notes
 ## Password and root privileges
 A majority of options require root privileges. If you've already set your custom password, the script will ask you to type it. It will be stored as an encrypted variable for the time of running the script. Otherwise, the script will use the default password which is **"GabeNewell#1"**. Unless you're using your own password, it will be removed at the end of each option execution.
-## Adding own patches
+## Enabling password remembering
+By default, remembering the user's custom password is disabled.
+You can change it by setting the **"REMEMBER_PASSWORD"** flag to **"1"** in the ***"settings.json"*** file. After the change, the script will remember the next password you typed and save it in the encrypted ***".user.sec"*** file.
+## Adding your own patches
 The tool uses the data from the ***"./patches/_patches.csv"*** file to identify the correct patch. Info about patches created with a workbench is added to the ***"./patches/_patches_own.csv"*** file. That file overrides data from the first mentioned file.
 The structure of both files is as follows:
 ```markdown
