@@ -12,9 +12,13 @@ echo_I() { echo -e "\e[1;34m[INFO] $1$clr0"; }
 
 ## Tells if the device is connected to the Internet
 _testConnection() {
-local _t; _t="$(ping -q -c2 "8.8.8.8" | grep -E -o -m 1 "([[:digit:]]{1,3}\%)")"
+local _t; _t="$(ping -q -c2 "8.8.8.8" | grep -E -o -m 1 '([[:digit:]]{1,3}'%')')"
 [ "$_t" != "100%" ]
 }
+
+## Random password generator
+# $1-Password length
+_randomPasswordGen() { tr -dc 'A-Za-z0-9!"#%&$'\''()*+,-./:;<>=?@[]\^_`|{}~' </dev/urandom | head -c "${1:-16}"; echo; }
 
 ## Waits n seconds before proceeding any further
 # $1-Number of seconds to wait
@@ -98,6 +102,9 @@ echo "$1"
 _getPassword() { _decrypt "$passWord"; }
 ## Set password variable
 _setPassword() { passWord=$(_encrypt "$1"); }
+
+_readUserSec() { _decrypt "$(cat $UserSecPath)" "$SEC_KEY"; }
+_writeUserSec() { _encrypt "$1" "$SEC_KEY" > $UserSecPath; }
 
 ## A function to get a value from a file which is formatted like "NAME=VALUE"
 # $1-Setting's Name; $2-File Path
@@ -209,10 +216,12 @@ fi
 # $1-Input string
 # Reference: https://www.howtogeek.com/734838/how-to-use-encrypted-passwords-in-bash-scripts/
 _encrypt() {
-echo "$1" | openssl enc -aes-256-cbc -md sha512 -a -pbkdf2 -iter 100000 -salt -pass "pass:$SESSION_GUID"
+local _p; _p=${2:-$SESSION_GUID} # set default password
+echo "$1" | openssl enc -aes-256-cbc -md sha512 -a -pbkdf2 -iter 100000 -salt -pass "pass:$_p"
 }
 _decrypt() {
-echo "$1" | openssl enc -aes-256-cbc -md sha512 -a -d -pbkdf2 -iter 100000 -salt -pass "pass:$SESSION_GUID"
+local _p; _p=${2:-$SESSION_GUID} # set default password
+echo "$1" | openssl enc -aes-256-cbc -md sha512 -a -d -pbkdf2 -iter 100000 -salt -pass "pass:$_p"
 }
 
 ## Read password from user input if it does have one set
@@ -221,8 +230,10 @@ local _p; _p=$(_getPassword)
 local _f=0 # helps to omit the encryption on the first try (when the script tries out a default password)
 while true; do
 	# if given password is valid then encrypt it
+	echo_I "Trying out the given password..."
 	if [ "$(_validateSudoPassword "$_p")" = 1 ]; then
-		[ $_f = 1 ] && _setPassword "$_p"
+		[ $_f = 1 ] && _setPassword "$_p" && 
+		[ "$REMEMBER_PASSWORD" = "1" ] && _writeUserSec "$_p"
 		break
 	fi
 	_f=1
@@ -262,8 +273,8 @@ fi
 _steamOsReadOnlyDisable # Disable Readonly protection
 }
 
-## Restores SteamOsReadOnly status if needed and removes user password if user doesn't have one set on script launch
-_sudoTaskFinalize() {
+## Restores SteamOsReadOnly status if needed and removes user password if user didn't have one set on script launch
+sudoTaskFinalize() {
 [ "$DEF_RO_STATUS" = "enabled" ] && _steamOsReadOnlyEnable
 [ "$DEF_USR_HAS_PASSWD" = 0 ] && removeUserPassword "$userName"
 }
@@ -292,7 +303,7 @@ fi
 
 ## Toggles DEF_RO_STATUS
 # Previously it used a hidden function which toggles readonly status "$(sudo steamos-readonly toggle)", but it didn't work out for the logic I wrote.
-_steamOsReadOnlyToggle() {
+steamOsReadOnlyToggle() {
 local _c # color
 if [ "$DEF_RO_STATUS" = "enabled" ]; then DEF_RO_STATUS="disabled"; _c="\e[1;31m"; 
 else DEF_RO_STATUS="enabled"; _c="\e[1;96m"; fi
@@ -867,16 +878,16 @@ COLUMNS=1
 select _ in "${_opts[@]}"; do
 	case "$REPLY" in
 		# Un/Patch scripts
-		1) checkSudo; if [ "$s_PATCH_STATE" == "P" ]; then unpatchScripts; else patchScripts; fi; _sudoTaskFinalize; break;;
+		1) checkSudo; if [ "$s_PATCH_STATE" == "P" ]; then unpatchScripts; else patchScripts; fi; sudoTaskFinalize; break;;
 		# Backup scripts
 		2) backupScripts; break;;
 		# Restore backupped scripts
-		3) checkSudo; restoreBackup; _sudoTaskFinalize; break;;
+		3) checkSudo; restoreBackup; sudoTaskFinalize; break;;
 		# EXIT
 		0) _exit;;
 		## HIDDEN OPTIONS
 		# steamos-readonly toggle
-		97) checkSudo; _steamOsReadOnlyToggle; _sudoTaskFinalize; break;;
+		97) checkSudo; steamOsReadOnlyToggle; sudoTaskFinalize; break;;
 		# Prepare a workbench
 		98) echo; chooseBackup; break;;
 		# Create a patch file
@@ -992,7 +1003,7 @@ echo_I "You can safely close this window now."; exit
 SESSION_GUID="$(uuidgen | tr "[:lower:]" "[:upper:]")"; readonly SESSION_GUID
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd); readonly ROOT_DIR
 declare -r TOOL_NAME="SteamDeckBTRFS"
-declare -r TOOL_VERSION="v2.0.4"
+declare -r TOOL_VERSION="v2.0.5"
 declare -ri PACKAGE_VERSION="102"
 declare -r unknown="unknown"
 declare -r ps3_1="Enter the number of your choice: "
@@ -1001,7 +1012,7 @@ declare -r git_link="https://github.com/mi5hmash/$TOOL_NAME"
 ## Username and temporary password
 userName="$USER" # real username (deck)
 nickName="$USER" # for the greetings funcs
-_setPassword "GabeNewell#1" # default password
+declare -r tempPasswd="GabeNewell#1"
 
 ## OS INFO
 s_NAME=$(_getSettingsValue "NAME"); readonly s_NAME
@@ -1022,6 +1033,7 @@ DEF_RO_STATUS=$(_steamOsReadOnlyStatusBTRFS)
 DEF_USR_HAS_PASSWD=$(_userHasPassword "$userName" && echo 1 || echo 0); readonly DEF_USR_HAS_PASSWD
 
 ## PATHS
+declare -r UserSecPath="./.user.sec"
 declare -r OriginalFilesIntelPath="./org_intel/"
 declare -r OriginalFilesPath="./original/"
 declare -r PatchedFilesPath="./patched/"
@@ -1051,9 +1063,9 @@ declare -r e_unpatch=".unpatch"
 ### SETTINGS
 
 declare -r settingsJson="settings.json" # Settings fileName
-declare -r settingsNames=("UPDATE_CHECK" "SHOW_HIDDEN_OPTIONS") # Settings Names
-declare -r settingsFormats=("i" "i") # Settings Formats (i - integer; s - string)
-declare -r settingsDefaults=("1" "0") # Settings Default Values
+declare -r settingsNames=("UPDATE_CHECK" "SHOW_HIDDEN_OPTIONS" "SEC_KEY" "REMEMBER_PASSWORD") # Settings Names
+declare -r settingsFormats=("i" "i" "s" "i") # Settings Formats (i - integer; s - string)
+declare -r settingsDefaults=("1" "0" "$(_randomPasswordGen "32")" "0") # Settings Default Values
 
 ## Reads settings from a 'settingsJson' config file
 _readSettingsJson() {
@@ -1100,24 +1112,22 @@ fi
 ## Check sudo
 if [ "$(_sudoStatus)" = 0 ]; then
 	clear
-	_printTitle
-	echo
 	echo_E "Sorry, but it seems that a current user hasn't got root rights. Please, contact the adminstrator of your device.\n"
 	exit
 fi
 loadSettingsJson ## Load Settings
 ## Update
 cd -- "$ROOT_DIR" || return
-clear
-_printTitle
 if [ "$UPDATE_CHECK" = "1" ]; then
-	[ "$INTERNET_CONNECTION" = "1" ] && _GIT_checkVersion
+	clear
+	[ "$INTERNET_CONNECTION" = "1" ] && echo_I "Checking for updates..." && _GIT_checkVersion
 else
 	UPDATE_CHECK="1"
-	_writeSettingsJson
 fi
+_writeSettingsJson ## Save Settings
 _specifyPatchCandidateAndState
 s_PATCH_AVAILABILITY="$(_GIT_locatePatch)"
+_setPassword "$( ([ -e $UserSecPath ] && "_readUserSec") || echo "$tempPasswd" )"
 ## Main Menu Loop
 while true
 do
