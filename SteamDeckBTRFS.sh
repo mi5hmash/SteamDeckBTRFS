@@ -324,17 +324,27 @@ else
 fi
 }
 
+## Initialize pacman's keyring
+_pacmanKeyringInit() {
+	sudo pacman-key --init && sudo pacman-key --populate archlinux && sudo pacman -Syu
+}
+
 ## Install package using pacman
 # $1-Package Name
 _installPackageWithPacman() {
 	local _p="$1"
+	# check if a specific package is installed
 	pacman -Qi "$_p" &> /dev/null
 	local _er="$?"
 	[ "$_er" = 0 ] && return
-	sudo pacman -S "$_p" --noconfirm &> /dev/null
+	pacman-key --list-sigs &> /dev/null
+	_er="$?"
+	[ "$_er" = 1 ] && echo_I "Trying to initialize pacman's keyring..." && _pacmanKeyringInit &> /dev/null
+	echo_I "Trying to install '$_p' package..." && sudo pacman -S "$_p" --noconfirm &> /dev/null
+	# re-check if a specific package is installed
 	pacman -Qi "$_p" &> /dev/null
 	_er="$?"
-	[ "$_er" = 0 ] && echo_I "'$_p' package got installed." && return
+	[ "$_er" = 0 ] && echo_S "The '$_p' package got installed." && return
 	echo_E "Couldn't install '$_p' package."
 }
 
@@ -1003,7 +1013,7 @@ echo_I "You can safely close this window now."; exit
 SESSION_GUID="$(uuidgen | tr "[:lower:]" "[:upper:]")"; readonly SESSION_GUID
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd); readonly ROOT_DIR
 declare -r TOOL_NAME="SteamDeckBTRFS"
-declare -r TOOL_VERSION="v2.0.5"
+declare -r TOOL_VERSION="v2.0.6"
 declare -ri PACKAGE_VERSION="102"
 declare -r unknown="unknown"
 declare -r ps3_1="Enter the number of your choice: "
@@ -1108,6 +1118,8 @@ fi
 
 
 ### MAIN (ENTRY POINT)
+
+echo "Loading..."
 
 ## Check sudo
 if [ "$(_sudoStatus)" = 0 ]; then
