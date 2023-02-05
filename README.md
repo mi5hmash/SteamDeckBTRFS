@@ -1,6 +1,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blueviolet.svg)](https://opensource.org/licenses/MIT)
 [![Release Version](https://img.shields.io/github/v/tag/mi5hmash/SteamDeckBTRFS?label=version)](https://github.com/mi5hmash/SteamDeckBTRFS/releases/latest)
-![Latest Known Supported SteamOS](https://img.shields.io/badge/Latest%20Suppored%20SteamOS-3.4.4%20--%20build%2020221228.1-success)
+![Latest Known Supported SteamOS](https://img.shields.io/badge/Latest%20Suppored%20SteamOS-3.4.11%20--%20build%2020231005.1-success)
 [![Visual Studio Code](https://img.shields.io/badge/VS%20Code-007ACC?logo=visual%20studio%20code&logoColor=ffffff)](https://code.visualstudio.com/)
 
 # :interrobang: SteamDeckBTRFS - What is it?
@@ -9,7 +9,7 @@
   <img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/iconart.png" alt="icon" width="256" />
 </p>
 
-It's a shell script for lazy people like me who want to use [BTRFS](https://btrfs.wiki.kernel.org/index.php/Main_Page) formatted microSD cards on their decks, but don't want to type many commands into a command line. Worry no more as I got you covered.
+It's a shell script for lazy people like me who want to use [BTRFS](https://btrfs.wiki.kernel.org/index.php/Main_Page) formatted microSD cards on their decks, but don't want to type many commands into a command line. If you're one of us, then worry no more as I got you covered.
 
 **Despite that it's simple, you're still <mark>using it at your own risk</mark>. I've tried my best to make it foolproof and I always run tests before release until I consider it stable, but some things may show up only after a long time of use. You've been warned.**
 # :tipping_hand_person: Yet another repository? | How is it different?
@@ -75,7 +75,7 @@ After completion of each function, you will be asked if that's all for now. You 
 A majority of options require root privileges. If you've already set your custom password, the script will ask you to type it. It will be stored as an encrypted variable for the time of running the script. Otherwise, the script will use the default password which is **"GabeNewell#1"**. Unless you're using your own password, it will be removed at the end of each option execution.
 ## Enabling password remembering
 By default, remembering the user's custom password is disabled.
-You can change it by setting the **"REMEMBER_PASSWORD"** flag to **"1"** in the ***"settings.json"*** file. After the change, the script will remember the next password you typed and save it in the encrypted ***".user.sec"*** file.
+You can change it by setting the **"REMEMBER_PASSWORD"** flag to **"1"** in the ***"settings.json"*** file. After the change, the script will remember the next entered password and save it in the encrypted ***".user.sec"*** file.
 ## Adding your own patches
 The tool uses the data from the ***"./patches/_patches.csv"*** file to identify the correct patch. Info about patches created with a workbench is added to the ***"./patches/_patches_own.csv"*** file. That file overrides data from the first mentioned file.
 The structure of both files is as follows:
