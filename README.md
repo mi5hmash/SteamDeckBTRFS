@@ -1,6 +1,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blueviolet.svg)](https://opensource.org/licenses/MIT)
 [![Release Version](https://img.shields.io/github/v/tag/mi5hmash/SteamDeckBTRFS?label=version)](https://github.com/mi5hmash/SteamDeckBTRFS/releases/latest)
-![Latest Known Supported SteamOS](https://img.shields.io/badge/Latest%20Suppored%20SteamOS-3.5.5%20--%20build%2020231116.2-success)
+![Latest Known Supported SteamOS](https://img.shields.io/badge/Latest%20Suppored%20SteamOS-3.5.7%20--%20build%2020231122.1-success)
 [![Visual Studio Code](https://img.shields.io/badge/VS%20Code-007ACC?logo=visual%20studio%20code&logoColor=ffffff)](https://code.visualstudio.com/)
 
 # :interrobang: SteamDeckBTRFS - What is it?
@@ -11,9 +11,9 @@
 
 It's a shell script for lazy people like me who want to use [BTRFS](https://btrfs.wiki.kernel.org/index.php/Main_Page) formatted microSD cards on their decks, but don't want to type many commands into a command line. If you're one of us, then worry no more as I got you covered.
 
-**Despite that it's simple, you're still <mark>using it at your own risk</mark>. I've tried my best to make it foolproof and I always run tests before release until I consider it stable, but some things may show up only after a long time of use. You've been warned.**
+**Despite that it's simple, you're still <mark>using it at your own risk</mark>. I've tried my best to make it foolproof and always run tests before release until I consider it stable, but some things may show up only after long use. You've been warned.**
 # :tipping_hand_person: Yet another repository? | How is it different?
-There are other repositories like mine. They are based on replacing entire scripts with the ones that have been already patched. My approach is to **patch the original scripts directly** using a small patch file. My tool also lets you **perform a reverse patch (unpatch)** operation on the patched scripts or **create a backup** of the original scripts so they can be restored later (**restore backup**).
+There are other repositories like mine. They are based on replacing entire scripts with the ones already patched. My approach is to **patch the original scripts directly** using a small patch file. My tool also lets you **perform a reverse patch (unpatch)** operation on the patched scripts or **create a backup** of the original scripts so they can be restored later (**restore backup**).
 # :performing_arts: Pros and cons
 Everything has been well explained in the 
 [btrfdeck repository](https://github.com/Trevo525/btrfdeck) by [Trevo525](https://github.com/Trevo525). Instead of copy-pasting everything from there here and thus committing plagiarism, I will just encourage you to go there and read the original content of that repo.
@@ -21,9 +21,9 @@ Everything has been well explained in the
 There are two ways to install this tool: Automatic or Manual [PRO].
 
 ### A) Automatic installation
-Automatic installation script will download and install the latest version of this tool in the ***'DOCUMENTS'*** directory and create a shortcut on ***'DESKTOP'***.
+The automatic installation script will download and install the latest version of this tool in the ***'DOCUMENTS'*** directory and create a shortcut on ***'DESKTOP'***.
 
-In order to install this way, open a new Konsole window and paste one of the following lines of code depending on what you want to do:
+To install this way, open a new Konsole window and paste one of the following lines of code depending on what you want to do:
 #### Install
 ```bash
 curl -sSL https://raw.githubusercontent.com/mi5hmash/SteamDeckBTRFS/main/_Installer.sh | bash
@@ -67,7 +67,8 @@ Safely terminates the script.
 ### 1. Patch | Unpatch scripts
 Tries to patch or reverse patch the scripts on Steam Deck if a compatible patch exists in the ***"./patches/"*** directory. Before doing so you would want to run **"2. Backup scripts"** option just in case you need it later. 
 
-> **Note:** Unpatch option works only when the scripts were previously patched by this tool.
+> [!IMPORTANT]
+> Unpatch option works only when the scripts were previously patched by this tool.
 
 ### 2. Backup scripts
 Makes a backup of script files and stores it in the ***"./backup/"*** directory.
@@ -80,12 +81,14 @@ Allows you to change the steamos-readonly status to the opposite of the current 
 ### 98. Prepare a workbench
 Unpacks a previously made backup to the ***"./workbench/original/"*** directory and copies script files to the ***"./workbench/patched/"*** directory. Having all that set, you can try to make a change to the scripts inside the ***"./workbench/patched/"*** directory.
 
-> **Note:** There are additional files in the ***"./workbench/org_intel/"*** directory that are not needed to create the patch, but may be helpful.
+> [!NOTE]
+> There are additional files in the ***"./workbench/org_intel/"*** directory that are not needed to create the patch, but may be helpful.
 
 ### 99. Create a patch file
 After you change everything you want, you can run this option to compare files from both directories and get your own patch as the result. The file will be saved in the ***"./patches/"*** directory. 
 
-> **Note:** You have to run it from a SteamOS on a Steam Deck as it will take the current SteamOS build as a patch version. Using other Linux distros won't work.
+> [!WARNING]
+> You have to run it from a SteamOS on a Steam Deck as it will take the current SteamOS build as a patch version. Using other Linux distros won't work.
 
 ## Are we done?
 After completion of each function, you will be asked if that's all for now. You can choose '**No**' to come back to the list of all functions.
@@ -105,16 +108,22 @@ e4765353a6fe36f254e67a3f7c62719e;b5ce0513-9d81-4c16-b7f9-c3b3fa2cee16;O
 #### EXPLANATION:
 md5 checksum of sha256 checksums of the script files separated by a "|" character;random GUID which is used as patch filename;letter "P" (Patched) or "O" (Original)
 
-## Mounting options
+## BTRFS Mounting options
 | Build             | Mounting options                                                            |
 |-------------------|-----------------------------------------------------------------------------|
 | **< 20221221.2**  | **compress-force=zstd:15**                                                  |
 | **>= 20221221.2** | **compress-force=zstd:6**, **lazytime**, **space_cache=v2**, **ssd_spread** |
+| **>= 20231116.2** | **compress-force=zstd:6**, **lazytime**, **space_cache=v2**                 |
+
+## NTFS Mounting options
+| Build             | Mounting options                                                            |
+|-------------------|-----------------------------------------------------------------------------|
+| **>= 20231116.2** | **windows_names**, **lazytime**, **big_writes**                             |
 
 # :fire: Issues
 All the problems I've encountered during my tests have been fixed on the go. If you find any other issue (hope you won't) then please, feel free to report it [there](https://github.com/mi5hmash/SteamDeckBTRFS/issues).
 # :star: Credits
-[Trevo525](https://github.com/Trevo525) - he did great research and his repository is the mine of information.
+[Trevo525](https://github.com/Trevo525) - he did great research and his repository is a mine of information.
 
 Sources:
 * https://www.howtogeek.com/734838/how-to-use-encrypted-passwords-in-bash-scripts/
