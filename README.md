@@ -1,6 +1,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blueviolet.svg)](https://opensource.org/licenses/MIT)
 [![Release Version](https://img.shields.io/github/v/tag/mi5hmash/SteamDeckBTRFS?label=version)](https://github.com/mi5hmash/SteamDeckBTRFS/releases/latest)
-![Latest Known Supported SteamOS](https://img.shields.io/badge/Latest%20Suppored%20SteamOS-3.4.11%20--%20build%2020231005.1-success)
+![Latest Known Supported SteamOS](https://img.shields.io/badge/Latest%20Suppored%20SteamOS-3.5.5%20--%20build%2020231116.2-success)
 [![Visual Studio Code](https://img.shields.io/badge/VS%20Code-007ACC?logo=visual%20studio%20code&logoColor=ffffff)](https://code.visualstudio.com/)
 
 # :interrobang: SteamDeckBTRFS - What is it?
@@ -17,7 +17,23 @@ There are other repositories like mine. They are based on replacing entire scrip
 # :performing_arts: Pros and cons
 Everything has been well explained in the 
 [btrfdeck repository](https://github.com/Trevo525/btrfdeck) by [Trevo525](https://github.com/Trevo525). Instead of copy-pasting everything from there here and thus committing plagiarism, I will just encourage you to go there and read the original content of that repo.
-# :runner: Running the script
+# 🧑‍🔧 Installing the script
+There are two ways to install this tool: Automatic or Manual [PRO].
+
+### A) Automatic installation
+Automatic installation script will download and install the latest version of this tool in the ***'DOCUMENTS'*** directory and create a shortcut on ***'DESKTOP'***.
+
+In order to install this way, open a new Konsole window and paste one of the following lines of code depending on what you want to do:
+#### Install
+```bash
+curl -sSL https://raw.githubusercontent.com/mi5hmash/SteamDeckBTRFS/main/_Installer.sh | bash
+```
+
+#### Uninstall
+```bash
+curl -sSL https://raw.githubusercontent.com/mi5hmash/SteamDeckBTRFS/main/_Installer.sh | bash -s -- -u
+```
+### B) Manual installation
 Grab the [latest release](https://github.com/mi5hmash/SteamDeckBTRFS/releases/latest) and unpack it on your Steam Deck.
 Then right-click on the ***'_Create a Shortcut on Desktop.sh'*** and select *"Properties"*. Navigate to the "Permissions" tab and make sure that an "Is executable" checkbox is ticked.
 
@@ -31,6 +47,9 @@ You can also click twice and execute that script.
 A desktop shortcut will be created.
 
 <img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/desktop_icon.png" alt="desktop_icon" width="280"/>
+
+# :runner: Running the script
+Regardless of which installation method you choose, you should end up with a shortcut on your desktop. Run the script with it.
 
 **Do not attempt to execute 'SteamDeckBTRFS.sh' by clicking twice on it, because this will run the script in a hidden window.**
 

@@ -1,5 +1,14 @@
 #!/bin/bash
 
+### USAGE
+
+## INSTALL
+# curl -sSL https://raw.githubusercontent.com/mi5hmash/SteamDeckBTRFS/main/_Installer.sh | bash
+
+## UNINSTALL
+# curl -sSL https://raw.githubusercontent.com/mi5hmash/SteamDeckBTRFS/main/_Installer.sh | bash -s -- -u
+
+
 ### GET OPTS
 
 # Default values

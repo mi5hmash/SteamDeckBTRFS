@@ -326,7 +326,7 @@ fi
 
 ## Initialize pacman's keyring
 _pacmanKeyringInit() {
-	sudo pacman-key --init && sudo pacman-key --populate archlinux && sudo pacman -Syu
+	sudo pacman-key --init && sudo pacman-key --populate && sudo pacman -Syu
 }
 
 ## Install package using pacman
@@ -337,9 +337,8 @@ _installPackageWithPacman() {
 	pacman -Qi "$_p" &> /dev/null
 	local _er="$?"
 	[ "$_er" = 0 ] && return
-	pacman-key --list-sigs &> /dev/null
-	_er="$?"
-	[ "$_er" = 1 ] && echo_I "Trying to initialize pacman's keyring..." && _pacmanKeyringInit &> /dev/null
+	[ "$PACMAN_REFRESHED" = 0 ] && echo_I "Trying to initialize pacman's keyring..." && _pacmanKeyringInit &> /dev/null
+	PACMAN_REFRESHED=1
 	echo_I "Trying to install '$_p' package..." && sudo pacman -S "$_p" --noconfirm &> /dev/null
 	# re-check if a specific package is installed
 	pacman -Qi "$_p" &> /dev/null
@@ -699,12 +698,12 @@ local _ret;
 local _dl; _dl=$1
 local _fileName; _fileName="update_$(uuidgen | tr "[:lower:]" "[:upper:]")$e_zip"
 echo_I "Trying to download the update:"
-wget -q --show-progress -O "$_fileName" -- "$1" &> /dev/null # download update file
+wget -q --show-progress -O "$_fileName" -- "$_dl" &> /dev/null # download the update file
 _ret="$?"; [ "$_ret" = 0 ] && _eSucc || _eFail
 echo_I "Trying to update:"
-unzip -oq "./$_fileName" # unpack update file
+unzip -oq "./$_fileName" # unpack the update file
 _ret="$?"; [ "$_ret" = 0 ] && _eSucc || _eFail
-rm -f "./$_fileName" # delete update file
+rm -f "./$_fileName" # delete the update file
 _simpleTimer "5" # wait 5 seconds so user can read the output
 }
 
@@ -809,8 +808,10 @@ fi
 _setScriptFiles() {
 if [ "$(_isUpdateAvailable "20221221.1" "$s_BUILD")" -eq 2 ]; then
 	ScriptFiles=("sdcard-mount.sh" "format-sdcard.sh")
-else
+elif [ "$(_isUpdateAvailable "20231116.2" "$s_BUILD")" -eq 2 ]; then
 	ScriptFiles=("sdcard-mount.sh" "format-device.sh")
+else
+	ScriptFiles=("steamos-automount.sh")
 fi
 }
 
@@ -1013,7 +1014,7 @@ echo_I "You can safely close this window now."; exit
 SESSION_GUID="$(uuidgen | tr "[:lower:]" "[:upper:]")"; readonly SESSION_GUID
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd); readonly ROOT_DIR
 declare -r TOOL_NAME="SteamDeckBTRFS"
-declare -r TOOL_VERSION="v2.0.6"
+declare -r TOOL_VERSION="v2.0.7"
 declare -ri PACKAGE_VERSION="102"
 declare -r unknown="unknown"
 declare -r ps3_1="Enter the number of your choice: "
@@ -1041,6 +1042,7 @@ FIRST_LAP=1
 INTERNET_CONNECTION="$(_testConnection && echo 1 || echo 0)"
 DEF_RO_STATUS=$(_steamOsReadOnlyStatusBTRFS)
 DEF_USR_HAS_PASSWD=$(_userHasPassword "$userName" && echo 1 || echo 0); readonly DEF_USR_HAS_PASSWD
+PACMAN_REFRESHED=0
 
 ## PATHS
 declare -r UserSecPath="./.user.sec"
