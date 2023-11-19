@@ -1,5 +1,24 @@
 #!/bin/bash
 
+### GET OPTS
+
+# Default values
+REMOVE_OPT=false
+VERBOSE_OPT=false
+
+# Get opts
+while getopts "rv" opt; do
+    case $opt in
+        r) REMOVE_OPT=true;;
+        v) VERBOSE_OPT=true;;
+        \?) ;;
+    esac
+done
+
+# Shift to process remaining arguments
+shift $((OPTIND-1))
+
+
 ### GLOBAL VARIABLES
 
 ## MAIN VARIABLES
@@ -10,8 +29,8 @@ ENV_DESKTOP_DIR=$(xdg-user-dir DESKTOP); readonly ENV_DESKTOP_DIR
 declare -r e_desktop=".desktop"
 
 ## CONFIGURATION - change as per your needs
-declare -r ScriptName="SteamDeckBTRFS.sh"
 declare -r ToolName="SteamDeckBTRFS"
+declare -r ScriptName="$ToolName.sh"
 declare -r GenericName="SteamDeck Script Patcher"
 declare -r Version="2.0.6"
 declare -r ScriptPath="$ROOT_DIR/$ScriptName"
@@ -22,12 +41,27 @@ declare -r Terminal="true"
 declare -r Type="Application"
 declare -r Categories="Application;Utilities"
 
-
-### MAIN (ENTRY POINT)
-
 declare -r DesktopEntryPath="$ENV_DESKTOP_DIR/$ToolName$e_desktop"
 
-# create desktop entry
+## A function to get a value from a file which is formatted like "NAME=VALUE"
+# $1-Setting's Name; $2-File Path
+_getSettingsValue() {
+local _v=$1
+local _f; _f=${2:-"/etc/os-release"}
+local _s; _s=$(grep -oP "(?<=^$_v=).+" -m "1" "$_f" | tr -d '"')
+echo "${_s:-$unknown}"
+}
+
+## OS INFO
+s_NAME=$(_getSettingsValue "NAME"); readonly s_NAME
+#s_VERSION=$(_getSettingsValue "VERSION_ID"); readonly s_VERSION
+
+
+### FUNCTIONS
+
+## Creates a Desktop Entry
+_createDesktopEntry(){
+# Create the Desktop Entry
 cat << EOD > "$DesktopEntryPath"
 [Desktop Entry]
 Version=$Version
@@ -43,13 +77,31 @@ Type=$Type
 Categories=$Categories
 EOD
 
-# mark as trusted on Ubuntu
-#gio set "$DesktopEntryPath" metadata::trusted true
+# Mark the Desktop Entry as trusted on Ubuntu
+[ "$s_NAME" = "Ubuntu" ] && gio set "$DesktopEntryPath" metadata::trusted true
 
-# set executable permission to the desktop entry and the script it leds to
+# Set executable permission to the Desktop Entry and the script it leds to
 chmod u+x "$DesktopEntryPath"
 chmod u+x "$ScriptPath"
 
-# exit script
-echo "All done. You can safely close this window now."
+echo "Desktop Entry has been created."
+}
+
+## Removes a Desktop Entry
+_removeDesktopEntry(){
+# Remove the Desktop Entry
+rm -f "$DesktopEntryPath"
+echo "Desktop Entry has been removed."
+}
+
+
+### MAIN (ENTRY POINT)
+
+case $REMOVE_OPT in
+    true) _removeDesktopEntry;;
+    *) _createDesktopEntry;;
+esac
+
+# Exit script
+[ "$VERBOSE_OPT" = false ] && echo "All done. You can safely close this window now."
 exit
