@@ -337,7 +337,7 @@ _installPackageWithPacman() {
 	pacman -Qi "$_p" &> /dev/null
 	local _er="$?"
 	[ "$_er" = 0 ] && return
-	[ "$PACMAN_REFRESHED" = 0 ] && echo_I "Trying to initialize pacman's keyring..." && _pacmanKeyringInit &> /dev/null
+	[ "$PACMAN_REFRESHED" = 0 ] && echo_I "Trying to initialize pacman's keyring..." && _pacmanKeyringInit
 	PACMAN_REFRESHED=1
 	echo_I "Trying to install '$_p' package..." && sudo pacman -S "$_p" --noconfirm &> /dev/null
 	# re-check if a specific package is installed
@@ -1014,7 +1014,7 @@ echo_I "You can safely close this window now."; exit
 SESSION_GUID="$(uuidgen | tr "[:lower:]" "[:upper:]")"; readonly SESSION_GUID
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd); readonly ROOT_DIR
 declare -r TOOL_NAME="SteamDeckBTRFS"
-declare -r TOOL_VERSION="v2.0.7"
+declare -r TOOL_VERSION="v2.0.8"
 declare -ri PACKAGE_VERSION="102"
 declare -r unknown="unknown"
 declare -r ps3_1="Enter the number of your choice: "
