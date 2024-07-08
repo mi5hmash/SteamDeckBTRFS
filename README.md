@@ -1,6 +1,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blueviolet.svg)](https://opensource.org/licenses/MIT)
 [![Release Version](https://img.shields.io/github/v/tag/mi5hmash/SteamDeckBTRFS?label=version)](https://github.com/mi5hmash/SteamDeckBTRFS/releases/latest)
-![Latest Known Supported SteamOS](https://img.shields.io/badge/Latest%20Suppored%20SteamOS-3.5.19%20--%20build%2020240422.1-success)
+![Latest Known Supported SteamOS](https://img.shields.io/badge/Latest%20Suppored%20SteamOS-3.6.8%20--%20build%2020240626.100-success)
 [![Visual Studio Code](https://img.shields.io/badge/VS%20Code-007ACC?logo=visual%20studio%20code&logoColor=ffffff)](https://code.visualstudio.com/)
 
 > [!IMPORTANT]
@@ -119,9 +119,10 @@ md5 checksum of sha256 checksums of the script files separated by a "|" characte
 | **>= 20231116.2** | **compress-force=zstd:6**, **lazytime**, **space_cache=v2**                 |
 
 ## NTFS Mounting options
-| Build             | Mounting options                                                            |
-|-------------------|-----------------------------------------------------------------------------|
-| **>= 20231116.2** | **windows_names**, **lazytime**, **big_writes**                             |
+| Build               | Mounting options                                                            |
+|---------------------|-----------------------------------------------------------------------------|
+| **>= 20231116.2**   | **windows_names**, **lazytime**, **big_writes**                             |
+| **>= 20240626.100** | **windows_names**, **lazytime**                             |
 
 # :fire: Issues
 All the problems I've encountered during my tests have been fixed on the go. If you find any other issue (hope you won't) then please, feel free to report it [there](https://github.com/mi5hmash/SteamDeckBTRFS/issues).
