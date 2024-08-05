@@ -326,7 +326,7 @@ fi
 
 ## Initialize pacman's keyring
 _pacmanKeyringInit() {
-	sudo pacman-key --init && sudo pacman-key --populate && sudo pacman -Syu
+	sudo pacman-key --init && sudo pacman-key --populate && sudo pacman -Syu --noconfirm
 }
 
 ## Install package using pacman
@@ -651,7 +651,7 @@ done
 _tarPack() {
 local _s=0 # status - preassume function will succeed
 cd -- "$1" || return
-tar -cf - * | gzip -9 > "$OLDPWD/$2"
+tar -cf -- * | gzip -9 > "$OLDPWD/$2"
 _s=${PIPESTATUS[0]}
 cd -- "$OLDPWD" || return
 [ "$_s" = 0 ]
