@@ -1,10 +1,24 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blueviolet.svg)](https://opensource.org/licenses/MIT)
-[![Release Version](https://img.shields.io/github/v/tag/mi5hmash/SteamDeckBTRFS?label=version)](https://github.com/mi5hmash/SteamDeckBTRFS/releases/latest)
-![Latest Known Supported SteamOS](https://img.shields.io/badge/Latest%20Suppored%20SteamOS-3.6.9%20--%20build%2020240807.101-success)
-[![Visual Studio Code](https://img.shields.io/badge/VS%20Code-007ACC?logo=visual%20studio%20code&logoColor=ffffff)](https://code.visualstudio.com/)
+[![Release Version](https://img.shields.io/github/v/tag/mi5hmash/SteamDeckBTRFS?label=Tool%20Version)](https://github.com/mi5hmash/SteamDeckBTRFS/releases/latest)
+[![Latest Supported SteamOS](https://img.shields.io/badge/Latest%20Supported%20SteamOS-v3.6.20%20--%20build%2020241030.1-seagreen)](#)
+[![Visual Studio Code](https://custom-icon-badges.demolab.com/badge/Visual%20Studio%20Code-0078d7.svg?logo=vsc&logoColor=white)](https://code.visualstudio.com/)
 
 > [!IMPORTANT]
-> **These scripts are free and open source. If someone asks you to pay for them, then it's likely a scam.**
+> **Scripts from this repo are free and open source. If someone asks you to pay for them, it's likely a scam.**
+
+## SteamOS Branches & Versions:
+[![SteamOS Branch Version: Stable](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fsteamdeck-atomupd.steamos.cloud%2Fmeta%2Fsteamos%2Famd64%2Fsnapshot%2Fsteamdeck.json&query=%24..candidates%5B0%5D.image.version&prefix=v&label=stable&color=teal)](#)
+[![SteamOS Branch Version: Release Candidate](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fsteamdeck-atomupd.steamos.cloud%2Fmeta%2Fsteamos%2Famd64%2Fsnapshot%2Fsteamdeck-rc.json&query=%24..candidates%5B0%5D.image.version&prefix=v&label=release%20candidate&color=00b3b3)](#)
+
+[![SteamOS Branch Version: Preview](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fsteamdeck-atomupd.steamos.cloud%2Fmeta%2Fsteamos%2Famd64%2Fsnapshot%2Fsteamdeck-preview.json&query=%24..candidates%5B0%5D.image.version&prefix=v&label=preview&color=teal)](#)
+[![SteamOS Branch Version: Preview Candidate](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fsteamdeck-atomupd.steamos.cloud%2Fmeta%2Fsteamos%2Famd64%2Fsnapshot%2Fsteamdeck-pc.json&query=%24..candidates%5B0%5D.image.version&prefix=v&label=preview%20candidate&color=00b3b3)](#)
+
+[![SteamOS Branch Version: Beta](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fsteamdeck-atomupd.steamos.cloud%2Fmeta%2Fsteamos%2Famd64%2Fsnapshot%2Fsteamdeck-beta.json&query=%24..candidates%5B0%5D.image.version&prefix=v&label=beta&color=teal)](#)
+[![SteamOS Branch Version: Beta Candidate](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fsteamdeck-atomupd.steamos.cloud%2Fmeta%2Fsteamos%2Famd64%2Fsnapshot%2Fsteamdeck-bc.json&query=%24..candidates%5B0%5D.image.version&prefix=v&label=beta%20candidate&color=00b3b3)](#)
+
+[![SteamOS Branch Version: Main](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fsteamdeck-atomupd.steamos.cloud%2Fmeta%2Fsteamos%2Famd64%2Fsnapshot%2Fsteamdeck-main.json&query=%24..candidates%5B0%5D.image.version&prefix=v&label=main&color=004d4d)](#)
+[![SteamOS Branch Version: Staging](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fsteamdeck-atomupd.steamos.cloud%2Fmeta%2Fsteamos%2Famd64%2Fsnapshot%2Fsteamdeck-staging.json&query=%24..candidates%5B0%5D.image.version&prefix=v&label=staging&color=004d4d)](#)
+[![SteamOS Branch Version: Galileo](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fsteamdeck-atomupd.steamos.cloud%2Fmeta%2Fsteamos%2Famd64%2Fsnapshot%2Fsteamdeck-galileo.json&query=%24..candidates%5B0%5D.image.version&prefix=v&label=galileo&color=004d4d)](#)
 
 # :interrobang: SteamDeckBTRFS - What is it?
 <p float="left">
@@ -12,7 +26,7 @@
   <img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/iconart.png" alt="icon" width="256" />
 </p>
 
-It's a shell script for lazy people like me who want to use [BTRFS](https://btrfs.wiki.kernel.org/index.php/Main_Page) formatted microSD cards on their decks, but don't want to type many commands into a command line. If you're one of us, then worry no more as I got you covered.
+It's a shell script for lazy people like me who want to use [BTRFS](https://btrfs.wiki.kernel.org/index.php/Main_Page) formatted microSD cards on their decks, but don't want to type many commands into a command line. If you're one of us, worry no more as I got you covered.
 
 **Despite that it's simple, you're still <mark>using it at your own risk</mark>. I've tried my best to make it foolproof and always run tests before release until I consider it stable, but some things may show up only after long use. You've been warned.**
 # :tipping_hand_person: Yet another repository? | How is it different?
@@ -88,7 +102,7 @@ Unpacks a previously made backup to the ***"./workbench/original/"*** directory 
 > There are additional files in the ***"./workbench/org_intel/"*** directory that are not needed to create the patch, but may be helpful.
 
 ### 99. Create a patch file
-After you change everything you want, you can run this option to compare files from both directories and get your own patch as the result. The file will be saved in the ***"./patches/"*** directory. 
+After you change everything you want, you can run this option to compare files from both directories and get your own patch as a result. The file will be saved in the ***"./patches/"*** directory. 
 
 > [!WARNING]
 > You have to run it from a SteamOS on a Steam Deck as it will take the current SteamOS build as a patch version. Using other Linux distros won't work.
