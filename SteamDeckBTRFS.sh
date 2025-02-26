@@ -651,7 +651,7 @@ done
 _tarPack() {
 local _s=0 # status - preassume function will succeed
 cd -- "$1" || return
-tar -cf -- * | gzip -9 > "$OLDPWD/$2"
+tar -cf - . | gzip -9 > "$OLDPWD/$2"
 _s=${PIPESTATUS[0]}
 cd -- "$OLDPWD" || return
 [ "$_s" = 0 ]
@@ -1014,7 +1014,7 @@ echo_I "You can safely close this window now."; exit
 SESSION_GUID="$(uuidgen | tr "[:lower:]" "[:upper:]")"; readonly SESSION_GUID
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd); readonly ROOT_DIR
 declare -r TOOL_NAME="SteamDeckBTRFS"
-declare -r TOOL_VERSION="v2.0.9"
+declare -r TOOL_VERSION="v2.0.10"
 declare -ri PACKAGE_VERSION="102"
 declare -r unknown="unknown"
 declare -r ps3_1="Enter the number of your choice: "
