@@ -1,7 +1,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blueviolet.svg)](https://opensource.org/licenses/MIT)
 [![Release Version](https://img.shields.io/github/v/tag/mi5hmash/SteamDeckBTRFS?label=Tool%20Version)](https://github.com/mi5hmash/SteamDeckBTRFS/releases/latest)
-[![Latest Supported SteamOS](https://img.shields.io/badge/Latest%20Supported%20SteamOS-v3.6.22%20--%20build%2020250224.1-seagreen)](#)
-[![Visual Studio Code](https://custom-icon-badges.demolab.com/badge/Visual%20Studio%20Code-0078d7.svg?logo=vsc&logoColor=white)](https://code.visualstudio.com/)
+[![Latest Supported SteamOS](https://img.shields.io/badge/Latest%20Supported%20SteamOS-v3.7.17%20--%20build%2020251027.1-seagreen)](#)
+[![Visual Studio Code](https://custom-icon-badges.demolab.com/badge/Visual%20Studio%20Code-27313C.svg?logo=visual-studio-code)](https://code.visualstudio.com/)
 
 > [!IMPORTANT]
 > **Scripts from this repo are free and open source. If someone asks you to pay for them, it's likely a scam.**
