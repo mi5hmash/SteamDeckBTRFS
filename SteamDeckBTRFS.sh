@@ -597,12 +597,12 @@ rm -rf -- "$TempPath"
 ## Generates Inegrity Hash for the files in ScriptFiles collection
 # $1-Script Files Root Path
 _generateIntegrityHash() {
-	local _c;
-	local _t;
+local _c;
+local _t;
 for f in "${ScriptFiles[@]}"
 do
 	mapfile -t -d " " _t < <(sha256sum -b -- "$1$f" 2>/dev/null)
-	_c=$_c"|"${_t[0]}
+	_c="${_c}|${_t[0]}:${f}"
 done
 mapfile -t -d " " _t < <(echo -n "${_c:1}" | md5sum)
 echo "${_t[0]}"
@@ -811,7 +811,14 @@ if [ "$(_isUpdateAvailable "20221221.1" "$s_BUILD")" -eq 2 ]; then
 elif [ "$(_isUpdateAvailable "20231116.2" "$s_BUILD")" -eq 2 ]; then
 	ScriptFiles=("sdcard-mount.sh" "format-device.sh")
 else
-	ScriptFiles=("steamos-automount.sh")
+	ScriptFiles=()
+	local _cs=("holo-automount.sh" "steamos-automount.sh")
+	for _c in "${_cs[@]}"; do
+		if [ -f "${SteamDeckFilesPath}${_c}" ]; then
+			ScriptFiles+=("$_c")
+			return
+		fi
+	done
 fi
 }
 
@@ -1014,7 +1021,7 @@ echo_I "You can safely close this window now."; exit
 SESSION_GUID="$(uuidgen | tr "[:lower:]" "[:upper:]")"; readonly SESSION_GUID
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd); readonly ROOT_DIR
 declare -r TOOL_NAME="SteamDeckBTRFS"
-declare -r TOOL_VERSION="v2.0.10"
+declare -r TOOL_VERSION="v2.0.11"
 declare -ri PACKAGE_VERSION="102"
 declare -r unknown="unknown"
 declare -r ps3_1="Enter the number of your choice: "
