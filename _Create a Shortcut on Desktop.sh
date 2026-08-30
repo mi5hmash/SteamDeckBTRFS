@@ -24,6 +24,7 @@ shift $((OPTIND-1))
 ## MAIN VARIABLES
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd); readonly ROOT_DIR
 ENV_DESKTOP_DIR=$(xdg-user-dir DESKTOP); readonly ENV_DESKTOP_DIR
+APPLICATIONS_DIR="$HOME/.local/share/applications"; readonly APPLICATIONS_DIR
 
 ## FILENAMES & EXTENSIONS
 declare -r e_desktop=".desktop"
@@ -32,14 +33,14 @@ declare -r e_desktop=".desktop"
 declare -r ToolName="SteamDeckBTRFS"
 declare -r ScriptName="$ToolName.sh"
 declare -r GenericName="SteamDeck Script Patcher"
-declare -r Version="2.0.6"
+declare -r Version="2.0.11"
 declare -r ScriptPath="$ROOT_DIR/$ScriptName"
 declare -r IconPath="$ROOT_DIR/icon.ico"
 declare -r Comment="PATCH, BACKUP or RESTORE SteamDeck's sdcard related scripts and make your unit friendly with the btrfs formatted sdcards"
 declare -r Encoding="UTF-8"
 declare -r Terminal="true"
 declare -r Type="Application"
-declare -r Categories="Application;Utilities"
+declare -r Categories="System;Utility"
 
 declare -r DesktopEntryPath="$ENV_DESKTOP_DIR/$ToolName$e_desktop"
 
@@ -94,12 +95,27 @@ rm -f "$DesktopEntryPath"
 echo "Desktop Entry has been removed."
 }
 
+## Creates an entry in the Applications Menu
+_createAppMenuEntry(){
+install -Dm644 "$DesktopEntryPath" "$APPLICATIONS_DIR"
+update-desktop-database "$APPLICATIONS_DIR" 2>/dev/null
+
+echo "Applications Menu Entry has been created."
+}
+
+## Removes an entry from the Applications Menu
+_removeAppMenuEntry(){
+rm -f "$APPLICATIONS_DIR/$ToolName$e_desktop"
+update-desktop-database "$APPLICATIONS_DIR" 2>/dev/null
+echo "Applications Menu Entry has been removed."
+}
+
 
 ### MAIN (ENTRY POINT)
 
 case $REMOVE_OPT in
-    true) _removeDesktopEntry;;
-    *) _createDesktopEntry;;
+    true) _removeDesktopEntry; _removeAppMenuEntry;;
+    *) _createDesktopEntry; _createAppMenuEntry;;
 esac
 
 # Exit script
