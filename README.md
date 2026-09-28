@@ -1,6 +1,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blueviolet.svg)](https://opensource.org/licenses/MIT)
 [![Release Version](https://img.shields.io/github/v/tag/mi5hmash/SteamDeckBTRFS?label=Tool%20Version)](https://github.com/mi5hmash/SteamDeckBTRFS/releases/latest)
-[![Latest Supported SteamOS](https://img.shields.io/badge/Latest%20Supported%20SteamOS-v3.8.16%20--%20build%2020260716.1-seagreen)](#)
+[![Latest Supported SteamOS](https://img.shields.io/badge/Latest%20Supported%20SteamOS-v3.8.28%20--%20build%2020260922.1-seagreen)](#)
 [![Visual Studio Code](https://custom-icon-badges.demolab.com/badge/Visual%20Studio%20Code-27313C.svg?logo=visual-studio-code)](https://code.visualstudio.com/)
 
 > [!IMPORTANT]
@@ -22,8 +22,8 @@
 
 # :interrobang: SteamDeckBTRFS - What is it?
 <p float="left">
-  <img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/cover.png" alt="cover" width="460" />
-  <img src="https://github.com/mi5hmash/SteamDeckBTRFS/blob/main/.resources/images/iconart.png" alt="icon" width="256" />
+  <img src=".resources/images/cover.png" alt="cover" width="460" />
+  <img src=".resources/images/iconart.png" alt="icon" width="256" />
 </p>
 
 It's a shell script for lazy people like me who want to use [BTRFS](https://btrfs.wiki.kernel.org/index.php/Main_Page) formatted microSD cards on their decks, but don't want to type many commands into a command line. If you're one of us, worry no more as I got you covered.
