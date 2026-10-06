@@ -97,6 +97,7 @@ echo "Desktop Entry has been removed."
 
 ## Creates an entry in the Applications Menu
 _createAppMenuEntry(){
+mkdir "$APPLICATIONS_DIR"
 install -Dm644 "$DesktopEntryPath" "$APPLICATIONS_DIR"
 update-desktop-database "$APPLICATIONS_DIR" 2>/dev/null
 
